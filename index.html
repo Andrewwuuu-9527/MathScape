@@ -5,6 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MathScape</title>
     <style>
+        /* 导航菜单样式 */
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .nav-button:hover {
+            background: #3498db;
+        }
+        
+        .nav-button.active {
+            background: #3498db;
+        }
+
         body {
             font-family: Arial, sans-serif;
             max-width: 1000px;
@@ -92,17 +127,22 @@
     </style>
 </head>
 <body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button active">特征值与特征向量</a>
+            <a href="fourier.html" class="nav-button">傅里叶变换</a>
+        </div>
+    </nav>
+
     <header>
         <h1>MathScape</h1>
-        <p>交互探索 - 特征值与特征向量</p>
+        <p> 特征值与特征向量</p>
     </header>
     
     <main>
         <div id="sketch-container">
-            <!-- 可视化将在这里显示 -->
-            <div style="text-align: center; padding: 20px;">
-                <p>加载中...</p>
-            </div>
+            <!-- p5.js画布将自动创建在这里 -->
         </div>
         
         <div class="controls">
@@ -132,7 +172,7 @@
                 <li><span style="color: red;">红色向量</span>是普通向量 - 在变换下方向和长度都可能改变</li>
                 <li>特征值表示特征向量被拉伸或压缩的比例</li>
             </ul>
-            <p>尝试调整矩阵的值，来观察向量如何变化！</p>
+            <p>请你尝试调整矩阵的值，以观察向量是如何变化的！</p>
         </div>
     </main>
 
@@ -225,7 +265,7 @@
         }
 
         function drawVectors() {
-            // 计算特征值和特征向量（简化版）
+            // 计算特征值和特征向量（简化）
             let a = matrixA[0][0], b = matrixA[0][1];
             let c = matrixA[1][0], d = matrixA[1][1];
             

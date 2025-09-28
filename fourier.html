@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>傅里叶变换 </title>
+    <style>
+        /* 导航菜单样式 */
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 10px 20px;
+            margin: 0 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        
+        .nav-button:hover {
+            background: #3498db;
+        }
+        
+        .nav-button.active {
+            background: #3498db;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f8ff;
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        #sketch-container {
+            border: 2px solid #ee5a24;
+            border-radius: 10px;
+            background: white;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            height: 600px;
+            position: relative;
+        }
+        
+        .controls {
+            background: #ffeaa7;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .controls input, .controls select {
+            width: 120px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #e17055;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #e17055;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #d63031;
+        }
+        
+        .explanation {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .wave-controls {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .wave-control {
+            background: #fab1a0;
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">特征值与特征向量</a>
+            <a href="fourier.html" class="nav-button active">傅里叶变换</a>
+        </div>
+    </nav>
+
+    <header>
+        <h1>傅里叶变换</h1>
+        <p>任何复杂波形都可以分解为简单正弦波的组合</p>
+    </header>
+    
+    <main>
+        <div id="sketch-container">
+            <!-- p5.js画布将自动创建在这里 -->
+        </div>
+        
+        <div class="controls">
+            <h3>波形控制</h3>
+            <div class="wave-controls">
+                <div class="wave-control">
+                    <label>波形类型: 
+                        <select id="waveType" onchange="changeWaveType()">
+                            <option value="square">方波</option>
+                            <option value="sawtooth">锯齿波</option>
+                            <option value="triangle">三角波</option>
+                            <option value="custom">自定义绘制</option>
+                        </select>
+                    </label>
+                </div>
+                
+                <div class="wave-control">
+                    <label>谐波数量: 
+                        <input type="range" id="harmonics" min="1" max="50" value="10" onchange="updateHarmonics()">
+                        <span id="harmonicsValue">10</span>
+                    </label>
+                </div>
+                
+                <div class="wave-control">
+                    <label>动画速度: 
+                        <input type="range" id="speed" min="1" max="10" value="5" onchange="updateSpeed()">
+                        <span id="speedValue">5</span>
+                    </label>
+                </div>
+            </div>
+            <br>
+            <button onclick="toggleAnimation()">暂停/继续动画</button>
+            <button onclick="resetAnimation()">重置</button>
+        </div>
+        
+        <div class="explanation">
+            <h3>数学原理</h3>
+            <p>傅里叶变换的核心思想是：<strong>任何周期函数都可以表示为不同频率的正弦和余弦函数的无穷级数</strong>。</p>
+            <ul>
+                <li><strong>时域</strong>：显示原始波形随时间的变化</li>
+                <li><strong>频域</strong>：显示构成波形的各个频率成分的强度</li>
+                <li><strong>谐波</strong>：基频的整数倍频率，共同构成复杂波形</li>
+            </ul>
+            <p>请你尝试调整谐波数量，以观察如何用越来越少的正弦波逼近复杂波形！</p>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- 傅里叶变换可视化代码 -->
+    <script>
+        // 全局变量
+        let time = 0;
+        let waves = [];
+        let path = [];
+        let drawing = false;
+        let animationPlaying = true;
+        let waveType = 'square';
+        let numHarmonics = 10;
+        let animationSpeed = 5;
+        let customWaveform = [];
+
+        function setup() {
+            // 创建画布
+            let canvas = createCanvas(800, 600);
+            // 将画布放入指定容器
+            canvas.parent('sketch-container');
+            
+            // 初始化自定义波形（空数组）
+            for (let i = 0; i < width; i++) {
+                customWaveform[i] = 0;
+            }
+        }
+
+        function draw() {
+            background(30);
+            
+            // 更新动画时间
+            if (animationPlaying) {
+                time += 0.05 * (animationSpeed / 5);
+            }
+            
+            // 绘制傅里叶变换可视化
+            drawFourierVisualization();
+        }
+
+        function drawFourierVisualization() {
+            // 清空waves数组
+            waves = [];
+            
+            // 计算傅里叶级数
+            let x = 0;
+            let y = 0;
+            
+            // 第一区域：旋转向量图
+            push();
+            translate(200, 300);
+            
+            // 绘制参考圆和坐标轴
+            stroke(100);
+            noFill();
+            ellipse(0, 0, 400, 400);
+            stroke(150);
+            line(-200, 0, 200, 0);
+            line(0, -200, 0, 200);
+            
+            // 计算每个谐波的贡献
+            for (let i = 0; i < numHarmonics; i++) {
+                let n = i * 2 + 1; // 只使用奇数次谐波
+                let prevx = x;
+                let prevy = y;
+                
+                // 计算半径（傅里叶系数）
+                let radius;
+                if (waveType === 'square') {
+                    radius = 80 * (4 / (n * PI));
+                } else if (waveType === 'sawtooth') {
+                    radius = 80 * (2 / (n * PI)) * (i % 2 === 0 ? 1 : -1);
+                } else if (waveType === 'triangle') {
+                    radius = 80 * (8 / (n * n * PI * PI)) * (i % 2 === 0 ? 0 : (i % 4 === 1 ? 1 : -1));
+                } else if (waveType === 'custom') {
+                    // 自定义波形的简化处理
+                    radius = 50 * sin(n * 0.1) / n;
+                }
+                
+                // 计算旋转
+                x += radius * cos(n * time);
+                y += radius * sin(n * time);
+                
+                // 绘制旋转圆
+                stroke(100, 100, 255, 100);
+                noFill();
+                ellipse(prevx, prevy, radius * 2);
+                
+                // 绘制旋转线
+                stroke(255, 100);
+                line(prevx, prevy, x, y);
+                
+                // 保存波的信息
+                waves.push({
+                    x: x,
+                    y: y,
+                    radius: radius,
+                    frequency: n,
+                    prevx: prevx,
+                    prevy: prevy
+                });
+            }
+            
+            // 绘制最终点
+            fill(255, 0, 0);
+            noStroke();
+            ellipse(x, y, 8);
+            
+            // 将点添加到路径
+            path.unshift(y);
+            if (path.length > 300) {
+                path.pop();
+            }
+            
+            pop();
+            
+            // 第二区域：波形图
+            push();
+            translate(600, 300);
+            
+            // 绘制坐标轴
+            stroke(150);
+            line(-350, 0, 0, 0);
+            line(-350, -150, -350, 150);
+            
+            // 绘制波形
+            stroke(0, 255, 0);
+            strokeWeight(2);
+            noFill();
+            beginShape();
+            for (let i = 0; i < path.length; i++) {
+                vertex(i - 350, path[i]);
+            }
+            endShape();
+            
+            // 连接两个区域
+            stroke(255, 100);
+            line(200, 300, 250, 300);
+            line(250, 300, 250, path[0] + 300);
+            
+            pop();
+            
+            // 第三区域：频域图
+            push();
+            translate(200, 100);
+            
+            // 绘制坐标轴
+            stroke(150);
+            line(0, 0, 350, 0);
+            line(0, -80, 0, 80);
+            
+            // 绘制频率条
+            for (let i = 0; i < waves.length; i++) {
+                let wave = waves[i];
+                let xPos = map(i, 0, waves.length, 0, 350);
+                let height = abs(wave.radius) * 2;
+                
+                fill(255, 100, 100);
+                noStroke();
+                rect(xPos - 5, 0, 10, -height);
+                
+                // 显示频率标签
+                fill(255);
+                textAlign(CENTER);
+                text(wave.frequency, xPos, 15);
+            }
+            
+            // 区域标签
+            fill(255);
+            textAlign(LEFT);
+            text("旋转向量图", -180, -250);
+            text("时域波形", 230, -250);
+            text("频域谱", -180, -150);
+            
+            pop();
+        }
+
+        // 波形类型改变
+        function changeWaveType() {
+            waveType = document.getElementById('waveType').value;
+            if (waveType === 'custom') {
+                setupCustomDrawing();
+            }
+            path = []; // 清空路径
+        }
+
+        // 设置自定义波形绘制
+        function setupCustomDrawing() {
+            // 这里可以添加自定义波形绘制功能
+            // 由于复杂度，先使用预设波形
+            console.log("自定义波形模式");
+        }
+
+        // 更新谐波数量
+        function updateHarmonics() {
+            numHarmonics = document.getElementById('harmonics').value;
+            document.getElementById('harmonicsValue').textContent = numHarmonics;
+            path = []; // 清空路径
+        }
+
+        // 更新动画速度
+        function updateSpeed() {
+            animationSpeed = document.getElementById('speed').value;
+            document.getElementById('speedValue').textContent = animationSpeed;
+        }
+
+        // 切换动画状态
+        function toggleAnimation() {
+            animationPlaying = !animationPlaying;
+        }
+
+        // 重置动画
+        function resetAnimation() {
+            time = 0;
+            path = [];
+            animationPlaying = true;
+        }
+
+        // 鼠标交互（用于自定义波形）
+        function mousePressed() {
+            if (waveType === 'custom') {
+                drawing = true;
+            }
+        }
+
+        function mouseReleased() {
+            drawing = false;
+        }
+    </script>
+</body>
+</html>
