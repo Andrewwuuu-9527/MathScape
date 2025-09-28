@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MathScape</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f8ff;
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        #sketch-container {
+            border: 2px solid #2575fc;
+            border-radius: 10px;
+            background: white;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .controls {
+            background: #e6f2ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .controls input {
+            width: 80px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #2575fc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #2575fc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #1a5fd8;
+        }
+        
+        .explanation {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .matrix-input {
+            display: inline-block;
+            margin: 10px;
+        }
+        
+        .matrix-input table {
+            margin: 0 auto;
+        }
+        
+        .matrix-input td {
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>MathScape</h1>
+        <p>交互探索 - 特征值与特征向量</p>
+    </header>
+    
+    <main>
+        <div id="sketch-container">
+            <!-- 可视化将在这里显示 -->
+            <div style="text-align: center; padding: 20px;">
+                <p>加载中...</p>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>调整矩阵值</h3>
+            <div class="matrix-input">
+                <table>
+                    <tr>
+                        <td><input type="number" id="a11" value="2" step="0.1"></td>
+                        <td><input type="number" id="a12" value="1" step="0.1"></td>
+                    </tr>
+                    <tr>
+                        <td><input type="number" id="a21" value="1" step="0.1"></td>
+                        <td><input type="number" id="a22" value="2" step="0.1"></td>
+                    </tr>
+                </table>
+            </div>
+            <br>
+            <button onclick="updateMatrix()">更新变换</button>
+            <button onclick="resetMatrix()">重置矩阵</button>
+        </div>
+        
+        <div class="explanation">
+            <h3>特征值与特征向量的几何意义</h3>
+            <p>在这个图像中：</p>
+            <ul>
+                <li><span style="color: blue;">蓝色向量</span>是特征向量 - 在矩阵变换下只改变长度，不改变方向</li>
+                <li><span style="color: red;">红色向量</span>是普通向量 - 在变换下方向和长度都可能改变</li>
+                <li>特征值表示特征向量被拉伸或压缩的比例</li>
+            </ul>
+            <p>尝试调整矩阵的值，来观察向量如何变化！</p>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- 我们的可视化代码 -->
+    <script>
+        // 全局变量
+        let matrixA = [[2, 1], [1, 2]]; // 初始矩阵
+        let canvas;
+
+        function setup() {
+            // 创建画布
+            canvas = createCanvas(800, 600);
+            // 将画布放入指定容器
+            canvas.parent('sketch-container');
+        }
+
+        function draw() {
+            // 设置背景色
+            background(245);
+            
+            // 将原点移到画布中心
+            translate(width / 2, height / 2);
+            // 翻转Y轴，使数学坐标系向上为正
+            scale(1, -1);
+            
+            // 绘制网格
+            drawGrid();
+            
+            // 绘制坐标轴
+            drawAxes();
+            
+            // 绘制向量
+            drawVectors();
+            
+            // 显示矩阵和特征值信息
+            drawInfo();
+        }
+
+        function drawGrid() {
+            stroke(220);
+            strokeWeight(1);
+            // 绘制网格线
+            for (let x = -width/2; x <= width/2; x += 50) {
+                line(x, -height/2, x, height/2);
+            }
+            for (let y = -height/2; y <= height/2; y += 50) {
+                line(-width/2, y, width/2, y);
+            }
+        }
+
+        function drawAxes() {
+            stroke(0);
+            strokeWeight(2);
+            // X轴
+            line(-width/2, 0, width/2, 0);
+            // Y轴
+            line(0, -height/2, 0, height/2);
+            
+            // 绘制坐标箭头
+            drawArrow(width/2 - 20, 0, width/2, 0);
+            drawArrow(0, height/2 - 20, 0, height/2);
+            
+            // 坐标轴标签（需要临时翻转文字方向）
+            push();
+            scale(1, -1);
+            fill(0);
+            noStroke();
+            textAlign(LEFT, TOP);
+            text("X", width/2 - 30, 10);
+            text("Y", 10, -height/2 + 30);
+            pop();
+        }
+
+        function drawArrow(x1, y1, x2, y2) {
+            // 绘制箭头线
+            line(x1, y1, x2, y2);
+            
+            // 绘制箭头头部
+            let angle = atan2(y2 - y1, x2 - x1);
+            push();
+            translate(x2, y2);
+            rotate(angle);
+            let arrowSize = 8;
+            line(0, 0, -arrowSize, arrowSize/2);
+            line(0, 0, -arrowSize, -arrowSize/2);
+            pop();
+        }
+
+        function drawVectors() {
+            // 计算特征值和特征向量（简化版）
+            let a = matrixA[0][0], b = matrixA[0][1];
+            let c = matrixA[1][0], d = matrixA[1][1];
+            
+            // 特征值公式: λ = (a+d)/2 ± sqrt(((a-d)/2)² + bc)
+            let trace = a + d;
+            let det = a*d - b*c;
+            let discriminant = trace*trace/4 - det;
+            
+            let lambda1, lambda2, v1, v2;
+            
+            if (discriminant >= 0) {
+                lambda1 = trace/2 + sqrt(discriminant);
+                lambda2 = trace/2 - sqrt(discriminant);
+                
+                // 简化特征向量计算
+                if (b !== 0) {
+                    v1 = [1, (lambda1 - a)/b];
+                    v2 = [1, (lambda2 - a)/b];
+                } else if (c !== 0) {
+                    v1 = [(lambda1 - d)/c, 1];
+                    v2 = [(lambda2 - d)/c, 1];
+                } else {
+                    v1 = [1, 0];
+                    v2 = [0, 1];
+                }
+                
+                // 归一化并缩放特征向量以便显示
+                let len1 = sqrt(v1[0]*v1[0] + v1[1]*v1[1]);
+                let len2 = sqrt(v2[0]*v2[0] + v2[1]*v2[1]);
+                
+                v1 = [v1[0]/len1 * 100, v1[1]/len1 * 100];
+                v2 = [v2[0]/len2 * 100, v2[1]/len2 * 100];
+                
+                // 绘制特征向量（蓝色）
+                stroke(0, 0, 255);
+                strokeWeight(3);
+                line(0, 0, v1[0], v1[1]);
+                line(0, 0, v2[0], v2[1]);
+                
+                // 绘制变换后的特征向量（浅蓝色）
+                stroke(100, 100, 255);
+                let tv1 = multiplyMatrixVector(matrixA, v1);
+                let tv2 = multiplyMatrixVector(matrixA, v2);
+                line(0, 0, tv1[0], tv1[1]);
+                line(0, 0, tv2[0], tv2[1]);
+            }
+            
+            // 绘制一个普通向量（红色）
+            stroke(255, 0, 0);
+            strokeWeight(3);
+            let normalVector = [80, 120];
+            line(0, 0, normalVector[0], normalVector[1]);
+            
+            // 绘制变换后的普通向量（粉色）
+            stroke(255, 100, 100);
+            let transformedNormal = multiplyMatrixVector(matrixA, normalVector);
+            line(0, 0, transformedNormal[0], transformedNormal[1]);
+        }
+
+        function multiplyMatrixVector(matrix, vector) {
+            return [
+                matrix[0][0] * vector[0] + matrix[0][1] * vector[1],
+                matrix[1][0] * vector[0] + matrix[1][1] * vector[1]
+            ];
+        }
+
+        function drawInfo() {
+            // 显示矩阵和特征值信息
+            push();
+            scale(1, -1); // 临时翻转以正确显示文字
+            fill(0);
+            noStroke();
+            textAlign(LEFT, TOP);
+            textSize(16);
+            
+            let a = matrixA[0][0], b = matrixA[0][1];
+            let c = matrixA[1][0], d = matrixA[1][1];
+            let trace = a + d;
+            let det = a*d - b*c;
+            let discriminant = trace*trace/4 - det;
+            
+            text(`矩阵 A = [${a.toFixed(1)}, ${b.toFixed(1)}; ${c.toFixed(1)}, ${d.toFixed(1)}]`, -width/2 + 20, height/2 - 60);
+            
+            if (discriminant >= 0) {
+                let lambda1 = trace/2 + sqrt(discriminant);
+                let lambda2 = trace/2 - sqrt(discriminant);
+                text(`特征值 λ₁ = ${lambda1.toFixed(2)}`, -width/2 + 20, height/2 - 40);
+                text(`特征值 λ₂ = ${lambda2.toFixed(2)}`, -width/2 + 20, height/2 - 20);
+            } else {
+                text("特征值: 复数（当前不显示）", -width/2 + 20, height/2 - 40);
+            }
+            
+            pop();
+        }
+
+        // 更新矩阵的函数
+        function updateMatrix() {
+            matrixA = [
+                [parseFloat(document.getElementById('a11').value), parseFloat(document.getElementById('a12').value)],
+                [parseFloat(document.getElementById('a21').value), parseFloat(document.getElementById('a22').value)]
+            ];
+        }
+
+        // 重置矩阵函数
+        function resetMatrix() {
+            document.getElementById('a11').value = 2;
+            document.getElementById('a12').value = 1;
+            document.getElementById('a21').value = 1;
+            document.getElementById('a22').value = 2;
+            updateMatrix();
+        }
+    </script>
+</body>
+</html>
