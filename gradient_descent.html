@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>梯度下降</title>
+    <style>
+        /* 导航菜单样式 */
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .nav-button:hover {
+            background: #3498db;
+        }
+        
+        .nav-button.active {
+            background: #3498db;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f8ff;
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, #00b894 0%, #00a085 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        #sketch-container {
+            border: 2px solid #00b894;
+            border-radius: 10px;
+            background: white;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            height: 600px;
+            position: relative;
+        }
+        
+        .controls {
+            background: #55efc4;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .controls input, .controls select {
+            width: 120px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #00b894;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #00b894;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #00a085;
+        }
+        
+        .explanation {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .control-group {
+            display: inline-block;
+            margin: 0 15px;
+            text-align: left;
+        }
+        
+        .slider-container {
+            margin: 10px 0;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">特征值与特征向量</a>
+            <a href="fourier.html" class="nav-button">傅里叶变换</a>
+            <a href="gradient_descent.html" class="nav-button active">梯度下降</a>
+        </div>
+    </nav>
+
+    <header>
+        <h1>梯度下降</h1>
+        <p>如何找到函数的最低点</p>
+    </header>
+    
+    <main>
+        <div id="sketch-container">
+            <!-- p5.js画布将自动创建在这里 -->
+        </div>
+        
+        <div class="controls">
+            <h3>算法参数控制</h3>
+            
+            <div class="control-group">
+                <div class="slider-container">
+                    <label>学习率 (Learning Rate): 
+                        <input type="range" id="learningRate" min="0.001" max="0.1" step="0.001" value="0.03" onchange="updateLearningRate()">
+                        <span id="learningRateValue">0.03</span>
+                    </label>
+                </div>
+                
+                <div class="slider-container">
+                    <label>初始X位置: 
+                        <input type="range" id="startX" min="-8" max="8" step="0.1" value="-6" onchange="updateStartPosition()">
+                        <span id="startXValue">-6.0</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="slider-container">
+                    <label>函数选择: 
+                        <select id="functionType" onchange="changeFunction()">
+                            <option value="quadratic">二次函数</option>
+                            <option value="saddle">鞍点函数</option>
+                            <option value="multiMin">多极小值函数</option>
+                        </select>
+                    </label>
+                </div>
+                
+                <div class="slider-container">
+                    <label>动画速度: 
+                        <input type="range" id="speed" min="1" max="10" value="5" onchange="updateSpeed()">
+                        <span id="speedValue">5</span>
+                    </label>
+                </div>
+            </div>
+            
+            <br>
+            <button onclick="startOptimization()">开始优化</button>
+            <button onclick="resetOptimization()">重置</button>
+            <button onclick="stepOptimization()">单步执行</button>
+        </div>
+        
+        <div class="explanation">
+            <h3>算法原理</h3>
+            <p>梯度下降是机器学习和优化中的核心算法，用于找到函数的<strong>最小值</strong>。</p>
+            
+            <p><strong>算法步骤：</strong></p>
+            <ol>
+                <li>从随机点开始</li>
+                <li>计算当前位置的<strong>梯度</strong>（导数）</li>
+                <li>沿着梯度<strong>反方向</strong>移动一小步（因为梯度指向函数增长最快的方向）</li>
+                <li>重复直到收敛到最小值</li>
+            </ol>
+            
+            <p><strong>关键参数：</strong></p>
+            <ul>
+                <li><strong>学习率</strong>：决定每一步的大小。太小则收敛慢，太大可能错过最小值</li>
+                <li><strong>初始位置</strong>：不同的起点可能导致不同的收敛结果</li>
+            </ul>
+            
+            <p>请你尝试调整学习率，以观察算法如何寻找函数的最低点！</p>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- 梯度下降可视化代码 -->
+    <script>
+        // 全局变量
+        let currentX = -6;
+        let history = [];
+        let isRunning = false;
+        let functionType = 'quadratic';
+        let learningRate = 0.03;
+        let animationSpeed = 5;
+        let animationFrame = 0;
+
+        function setup() {
+            // 创建画布
+            let canvas = createCanvas(800, 600);
+            // 将画布放入指定容器
+            canvas.parent('sketch-container');
+        }
+
+        function draw() {
+            background(240);
+            
+            // 绘制函数曲线和优化过程
+            drawFunction();
+            drawOptimizationProcess();
+            
+            // 执行优化步骤
+            if (isRunning && animationFrame % (11 - animationSpeed) === 0) {
+                performGradientStep();
+            }
+            animationFrame++;
+        }
+
+        function drawFunction() {
+            push();
+            translate(width / 2, height / 2);
+            scale(1, -1); // 翻转Y轴
+            
+            // 绘制坐标轴
+            drawAxes();
+            
+            // 绘制函数曲线
+            stroke(0, 100, 200);
+            strokeWeight(3);
+            noFill();
+            beginShape();
+            
+            let points = [];
+            for (let x = -8; x <= 8; x += 0.1) {
+                let y = calculateFunction(x);
+                points.push({x: x * 40, y: y * 40});
+                vertex(x * 40, y * 40);
+            }
+            endShape();
+            
+            // 标记最小值点
+            let minPoint = findGlobalMinimum();
+            fill(255, 0, 0, 100);
+            noStroke();
+            ellipse(minPoint.x * 40, minPoint.y * 40, 10, 10);
+            
+            pop();
+        }
+
+        function calculateFunction(x) {
+            switch(functionType) {
+                case 'quadratic':
+                    return 0.1 * x * x + 0.5 * x + 2; // 简单的二次函数
+                case 'saddle':
+                    return 0.05 * x * x * x * x - 0.5 * x * x + 2; // 鞍点函数
+                case 'multiMin':
+                    return 0.1 * x * x + 2 * Math.sin(x) + 5; // 多极小值函数
+                default:
+                    return 0.1 * x * x + 0.5 * x + 2;
+            }
+        }
+
+        function calculateGradient(x) {
+            // 数值方法计算导数
+            let h = 0.001;
+            return (calculateFunction(x + h) - calculateFunction(x - h)) / (2 * h);
+        }
+
+        function findGlobalMinimum() {
+            // 简化版：在定义域内搜索最小值
+            let minX = -8;
+            let minY = calculateFunction(minX);
+            
+            for (let x = -8; x <= 8; x += 0.1) {
+                let y = calculateFunction(x);
+                if (y < minY) {
+                    minY = y;
+                    minX = x;
+                }
+            }
+            
+            return {x: minX, y: minY};
+        }
+
+        function drawAxes() {
+            stroke(0);
+            strokeWeight(1);
+            
+            // X轴
+            line(-width/2, 0, width/2, 0);
+            // Y轴
+            line(0, -height/2, 0, height/2);
+            
+            // 网格和刻度
+            stroke(200);
+            for (let x = -8; x <= 8; x++) {
+                line(x * 40, -height/2, x * 40, height/2);
+            }
+            for (let y = -6; y <= 6; y++) {
+                line(-width/2, y * 40, width/2, y * 40);
+            }
+            
+            // 坐标轴标签
+            push();
+            scale(1, -1);
+            fill(0);
+            noStroke();
+            textAlign(CENTER, CENTER);
+            
+            for (let x = -8; x <= 8; x += 2) {
+                text(x, x * 40, -15);
+            }
+            for (let y = -6; y <= 6; y += 2) {
+                if (y !== 0) text(y, -15, -y * 40);
+            }
+            
+            text("x", width/2 - 20, 20);
+            text("f(x)", -20, height/2 - 20);
+            pop();
+        }
+
+        function drawOptimizationProcess() {
+            push();
+            translate(width / 2, height / 2);
+            scale(1, -1);
+            
+            // 绘制历史路径
+            if (history.length > 1) {
+                stroke(255, 100, 0);
+                strokeWeight(2);
+                noFill();
+                beginShape();
+                for (let i = 0; i < history.length; i++) {
+                    vertex(history[i].x * 40, history[i].y * 40);
+                }
+                endShape();
+                
+                // 绘制历史点
+                for (let i = 0; i < history.length; i++) {
+                    let alpha = map(i, 0, history.length, 100, 255);
+                    fill(255, 100, 0, alpha);
+                    noStroke();
+                    ellipse(history[i].x * 40, history[i].y * 40, 4, 4);
+                }
+            }
+            
+            // 绘制当前点
+            let currentY = calculateFunction(currentX);
+            fill(255, 0, 0);
+            noStroke();
+            ellipse(currentX * 40, currentY * 40, 8, 8);
+            
+            // 绘制梯度向量（切线）
+            let gradient = calculateGradient(currentX);
+            stroke(0, 150, 0);
+            strokeWeight(2);
+            let arrowLength = 50;
+            line(currentX * 40, currentY * 40, 
+                 currentX * 40 + arrowLength, 
+                 currentY * 40 + gradient * arrowLength);
+            
+            // 绘制负梯度方向（下降方向）
+            stroke(150, 0, 0);
+            line(currentX * 40, currentY * 40,
+                 currentX * 40 - arrowLength,
+                 currentY * 40 - gradient * arrowLength);
+            
+            // 显示当前信息
+            push();
+            scale(1, -1);
+            fill(0);
+            noStroke();
+            textAlign(LEFT, TOP);
+            textSize(14);
+            text(`当前位置: x = ${currentX.toFixed(3)}`, -width/2 + 20, -height/2 + 20);
+            text(`函数值: f(x) = ${currentY.toFixed(3)}`, -width/2 + 20, -height/2 + 40);
+            text(`梯度值: ${gradient.toFixed(3)}`, -width/2 + 20, -height/2 + 60);
+            text(`学习率: ${learningRate.toFixed(3)}`, -width/2 + 20, -height/2 + 80);
+            text(`步数: ${history.length}`, -width/2 + 20, -height/2 + 100);
+            pop();
+            
+            pop();
+        }
+
+        function performGradientStep() {
+            let gradient = calculateGradient(currentX);
+            currentX = currentX - learningRate * gradient;
+            let currentY = calculateFunction(currentX);
+            
+            history.push({x: currentX, y: currentY});
+            
+            // 如果收敛或超出范围，停止优化
+            if (Math.abs(gradient) < 0.001 || history.length > 100 || Math.abs(currentX) > 10) {
+                isRunning = false;
+            }
+        }
+
+        // 控制函数
+        function updateLearningRate() {
+            learningRate = parseFloat(document.getElementById('learningRate').value);
+            document.getElementById('learningRateValue').textContent = learningRate.toFixed(3);
+        }
+
+        function updateStartPosition() {
+            currentX = parseFloat(document.getElementById('startX').value);
+            document.getElementById('startXValue').textContent = currentX.toFixed(1);
+            resetOptimization();
+        }
+
+        function changeFunction() {
+            functionType = document.getElementById('functionType').value;
+            resetOptimization();
+        }
+
+        function updateSpeed() {
+            animationSpeed = parseInt(document.getElementById('speed').value);
+            document.getElementById('speedValue').textContent = animationSpeed;
+        }
+
+        function startOptimization() {
+            isRunning = true;
+        }
+
+        function resetOptimization() {
+            currentX = parseFloat(document.getElementById('startX').value);
+            history = [];
+            isRunning = false;
+        }
+
+        function stepOptimization() {
+            performGradientStep();
+        }
+
+        // 初始化显示
+        updateLearningRate();
+        updateStartPosition();
+    </script>
+</body>
+</html>
