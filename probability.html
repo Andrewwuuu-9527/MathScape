@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>概率分布</title>
+    <style>
+        /* 导航菜单样式 */
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .nav-button:hover {
+            background: #3498db;
+        }
+        
+        .nav-button.active {
+            background: #3498db;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f8ff;
+            line-height: 1.6;
+        }
+        
+        header {
+            text-align: center;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        #sketch-container {
+            border: 2px solid #9b59b6;
+            border-radius: 10px;
+            background: white;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            height: 600px;
+            position: relative;
+        }
+        
+        .controls {
+            background: #e8daef;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .controls input, .controls select {
+            width: 120px;
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #9b59b6;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        button {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background: #8e44ad;
+        }
+        
+        .explanation {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+        
+        .control-group {
+            display: inline-block;
+            margin: 0 15px;
+            text-align: left;
+        }
+        
+        .slider-container {
+            margin: 10px 0;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: #d7bde2;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        
+        .tab.active {
+            background: #9b59b6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">特征值与特征向量</a>
+            <a href="fourier.html" class="nav-button">傅里叶变换</a>
+            <a href="gradient_descent.html" class="nav-button">梯度下降</a>
+            <a href="probability.html" class="nav-button active">概率分布</a>
+            <a href="differential_equations.html" class="nav-button">微分方程</a>
+        </div>
+    </nav>
+
+    <header>
+        <h1>概率分布与中心极限定理</h1>
+        <p>探索随机现象的规律性 - 从二项分布到正态分布</p>
+    </header>
+    
+    <main>
+        <div class="tab-container">
+            <button class="tab active" onclick="switchTab('distributions')">概率分布</button>
+            <button class="tab" onclick="switchTab('clt')">中心极限定理</button>
+            <button class="tab" onclick="switchTab('sampling')">抽样分布</button>
+        </div>
+        
+        <div id="sketch-container">
+            <!-- p5.js画布将自动创建在这里 -->
+        </div>
+        
+        <div class="controls">
+            <h3>分布参数控制</h3>
+            
+            <div class="control-group">
+                <div class="slider-container">
+                    <label>分布类型: 
+                        <select id="distributionType" onchange="changeDistribution()">
+                            <option value="normal">正态分布</option>
+                            <option value="binomial">二项分布</option>
+                            <option value="poisson">泊松分布</option>
+                            <option value="exponential">指数分布</option>
+                        </select>
+                    </label>
+                </div>
+                
+                <div class="slider-container" id="meanContainer">
+                    <label>均值 (μ): 
+                        <input type="range" id="mean" min="0" max="10" step="0.1" value="5" onchange="updateParameters()">
+                        <span id="meanValue">5.0</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="slider-container" id="stdContainer">
+                    <label>标准差 (σ): 
+                        <input type="range" id="std" min="0.1" max="3" step="0.1" value="1" onchange="updateParameters()">
+                        <span id="stdValue">1.0</span>
+                    </label>
+                </div>
+                
+                <div class="slider-container" id="nContainer" style="display:none">
+                    <label>试验次数 (n): 
+                        <input type="range" id="n" min="1" max="50" step="1" value="10" onchange="updateParameters()">
+                        <span id="nValue">10</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="slider-container" id="pContainer" style="display:none">
+                    <label>成功概率 (p): 
+                        <input type="range" id="p" min="0.01" max="0.99" step="0.01" value="0.5" onchange="updateParameters()">
+                        <span id="pValue">0.5</span>
+                    </label>
+                </div>
+                
+                <div class="slider-container" id="lambdaContainer" style="display:none">
+                    <label>发生率 (λ): 
+                        <input type="range" id="lambda" min="0.1" max="10" step="0.1" value="3" onchange="updateParameters()">
+                        <span id="lambdaValue">3.0</span>
+                    </label>
+                </div>
+            </div>
+            
+            <br>
+            <button onclick="startSimulation()">开始模拟</button>
+            <button onclick="resetSimulation()">重置</button>
+            <button onclick="addSamples(100)">增加100样本</button>
+        </div>
+        
+        <div class="explanation">
+            <div id="distributionsExplanation">
+                <h3>概率分布基础</h3>
+                <p>概率分布描述了随机变量取不同值的可能性。常见的分布包括：</p>
+                <ul>
+                    <li><strong>正态分布</strong>：自然界中许多现象的分布，钟形曲线</li>
+                    <li><strong>二项分布</strong>：n次独立伯努利试验中成功次数的分布</li>
+                    <li><strong>泊松分布</strong>：单位时间内随机事件发生次数的分布</li>
+                    <li><strong>指数分布</strong>：独立随机事件发生的时间间隔</li>
+                </ul>
+            </div>
+            
+            <div id="cltExplanation" style="display:none">
+                <h3>中心极限定理</h3>
+                <p><strong>中心极限定理</strong>是概率论中最重要的定理之一：</p>
+                <p>"无论总体分布是什么形状，当样本量足够大时，样本均值的抽样分布近似服从正态分布。"</p>
+                <p>这意味着：</p>
+                <ul>
+                    <li>样本均值围绕总体均值波动</li>
+                    <li>样本均值的标准差是总体标准差的 1/√n</li>
+                    <li>样本量越大，近似效果越好</li>
+                </ul>
+            </div>
+            
+            <div id="samplingExplanation" style="display:none">
+                <h3>抽样分布</h3>
+                <p>抽样分布描述了从同一总体中抽取多个样本时，样本统计量（如均值、方差）的分布。</p>
+                <p>理解抽样分布是统计推断的基础，包括：</p>
+                <ul>
+                    <li>置信区间构造</li>
+                    <li>假设检验</li>
+                    <li>回归分析</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- 概率分布可视化代码 -->
+    <script>
+        // 全局变量
+        let currentTab = 'distributions';
+        let distributionType = 'normal';
+        let mean = 5;
+        let std = 1;
+        let n = 10;
+        let p = 0.5;
+        let lambda = 3;
+        let samples = [];
+        let sampleMeans = [];
+        let animationFrame = 0;
+        let isRunning = false;
+
+        function setup() {
+            // 创建画布
+            let canvas = createCanvas(800, 600);
+            // 将画布放入指定容器
+            canvas.parent('sketch-container');
+        }
+
+        function draw() {
+            background(245);
+            
+            switch(currentTab) {
+                case 'distributions':
+                    drawDistributions();
+                    break;
+                case 'clt':
+                    drawCentralLimitTheorem();
+                    break;
+                case 'sampling':
+                    drawSamplingDistribution();
+                    break;
+            }
+            
+            // 运行模拟
+            if (isRunning && animationFrame % 10 === 0) {
+                addSamples(1);
+            }
+            animationFrame++;
+        }
+
+        function drawDistributions() {
+            push();
+            translate(50, 50);
+            
+            // 绘制坐标轴
+            drawProbabilityAxes();
+            
+            // 绘制概率密度函数
+            stroke(75, 0, 130);
+            strokeWeight(3);
+            noFill();
+            
+            beginShape();
+            for (let x = 0; x <= width - 100; x++) {
+                let value = map(x, 0, width - 100, -3, 13);
+                let pdfValue = calculatePDF(value);
+                let y = map(pdfValue, 0, getMaxPDF(), height - 100, 50);
+                vertex(x, y);
+            }
+            endShape();
+            
+            // 显示分布信息
+            fill(75, 0, 130);
+            noStroke();
+            textAlign(LEFT, TOP);
+            textSize(16);
+            text(getDistributionInfo(), 10, 10);
+            
+            pop();
+        }
+
+        function drawCentralLimitTheorem() {
+            push();
+            translate(50, 50);
+            
+            // 绘制总体分布
+            stroke(75, 0, 130);
+            strokeWeight(2);
+            noFill();
+            
+            beginShape();
+            for (let x = 0; x <= (width - 100) / 2 - 20; x++) {
+                let value = map(x, 0, (width - 100) / 2 - 20, 0, 10);
+                let pdfValue = calculatePDF(value);
+                let y = map(pdfValue, 0, getMaxPDF(), height - 150, 50);
+                vertex(x, y);
+            }
+            endShape();
+            
+            // 标注
+            fill(75, 0, 130);
+            noStroke();
+            text("总体分布", (width - 100) / 4 - 40, height - 130);
+            
+            // 绘制样本均值分布
+            if (sampleMeans.length > 0) {
+                stroke(220, 20, 60);
+                strokeWeight(2);
+                
+                // 绘制直方图
+                let hist = {};
+                let binSize = 0.5;
+                sampleMeans.forEach(mean => {
+                    let bin = Math.floor(mean / binSize) * binSize;
+                    hist[bin] = (hist[bin] || 0) + 1;
+                });
+                
+                let maxFreq = Math.max(...Object.values(hist));
+                
+                beginShape();
+                for (let bin in hist) {
+                    let x = map(parseFloat(bin), 0, 10, (width - 100) / 2 + 20, width - 100);
+                    let y = map(hist[bin], 0, maxFreq, height - 150, 50);
+                    vertex(x, y);
+                    vertex(x + map(binSize, 0, 10, 0, (width - 100) / 2 - 20), y);
+                }
+                endShape();
+                
+                // 绘制正态分布曲线
+                if (sampleMeans.length >= 30) {
+                    stroke(0, 100, 0);
+                    strokeWeight(2);
+                    noFill();
+                    
+                    let sampleMean = sampleMeans.reduce((a, b) => a + b, 0) / sampleMeans.length;
+                    let sampleStd = Math.sqrt(sampleMeans.reduce((a, b) => a + (b - sampleMean) ** 2, 0) / sampleMeans.length);
+                    
+                    beginShape();
+                    for (let x = 0; x <= (width - 100) / 2 - 20; x++) {
+                        let value = map(x, 0, (width - 100) / 2 - 20, sampleMean - 3*sampleStd, sampleMean + 3*sampleStd);
+                        let pdfValue = (1 / (sampleStd * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * ((value - sampleMean) / sampleStd) ** 2);
+                        let y = map(pdfValue, 0, 1/(sampleStd * Math.sqrt(2 * Math.PI)), height - 150, 50);
+                        vertex(x + (width - 100) / 2 + 20, y);
+                    }
+                    endShape();
+                }
+                
+                // 标注
+                fill(220, 20, 60);
+                text("样本均值分布", (width - 100) * 3/4 - 40, height - 130);
+                
+                // 显示统计信息
+                fill(0);
+                text(`样本数量: ${sampleMeans.length}`, (width - 100) / 2 + 30, 10);
+                if (sampleMeans.length > 0) {
+                    let sm = sampleMeans.reduce((a, b) => a + b, 0) / sampleMeans.length;
+                    text(`样本均值: ${sm.toFixed(3)}`, (width - 100) / 2 + 30, 30);
+                    text(`理论均值: ${mean.toFixed(3)}`, (width - 100) / 2 + 30, 50);
+                }
+            }
+            
+            pop();
+        }
+
+        function drawSamplingDistribution() {
+            // 类似于CLT，但专注于抽样变异性的展示
+            drawCentralLimitTheorem();
+        }
+
+        function drawProbabilityAxes() {
+            stroke(0);
+            strokeWeight(1);
+            
+            // X轴
+            line(0, height - 100, width - 100, height - 100);
+            // Y轴
+            line(0, height - 100, 0, 50);
+            
+            // 标签
+            fill(0);
+            noStroke();
+            textAlign(CENTER, CENTER);
+            text("x", (width - 100) / 2, height - 80);
+            text("P(x)", -20, (height - 150) / 2);
+            
+            // 刻度
+            for (let i = 0; i <= 10; i += 2) {
+                let x = map(i, 0, 10, 0, width - 100);
+                line(x, height - 100, x, height - 95);
+                text(i, x, height - 85);
+            }
+        }
+
+        function calculatePDF(x) {
+            switch(distributionType) {
+                case 'normal':
+                    return (1 / (std * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * ((x - mean) / std) ** 2);
+                case 'binomial':
+                    if (x < 0 || x > n) return 0;
+                    return binomialCoefficient(n, Math.round(x)) * Math.pow(p, Math.round(x)) * Math.pow(1-p, n - Math.round(x));
+                case 'poisson':
+                    if (x < 0) return 0;
+                    return (Math.pow(lambda, Math.round(x)) * Math.exp(-lambda)) / factorial(Math.round(x));
+                case 'exponential':
+                    if (x < 0) return 0;
+                    return lambda * Math.exp(-lambda * x);
+                default:
+                    return 0;
+            }
+        }
+
+        function getMaxPDF() {
+            // 简化的最大值计算
+            switch(distributionType) {
+                case 'normal':
+                    return 1 / (std * Math.sqrt(2 * Math.PI));
+                case 'binomial':
+                    return calculatePDF(mean);
+                case 'poisson':
+                    return calculatePDF(Math.floor(lambda));
+                case 'exponential':
+                    return lambda;
+                default:
+                    return 1;
+            }
+        }
+
+        function getDistributionInfo() {
+            switch(distributionType) {
+                case 'normal':
+                    return `正态分布: N(${mean.toFixed(1)}, ${std.toFixed(1)}²)`;
+                case 'binomial':
+                    return `二项分布: B(${n}, ${p.toFixed(2)})`;
+                case 'poisson':
+                    return `泊松分布: Pois(${lambda.toFixed(1)})`;
+                case 'exponential':
+                    return `指数分布: Exp(${lambda.toFixed(1)})`;
+                default:
+                    return "";
+            }
+        }
+
+        // 数学工具函数
+        function factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        function binomialCoefficient(n, k) {
+            return factorial(n) / (factorial(k) * factorial(n - k));
+        }
+
+        // 抽样函数
+        function generateSample() {
+            switch(distributionType) {
+                case 'normal':
+                    // Box-Muller变换生成正态分布随机数
+                    let u1 = Math.random();
+                    let u2 = Math.random();
+                    let z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+                    return z0 * std + mean;
+                case 'binomial':
+                    // 二项分布抽样
+                    let successes = 0;
+                    for (let i = 0; i < n; i++) {
+                        if (Math.random() < p) successes++;
+                    }
+                    return successes;
+                case 'poisson':
+                    // 泊松分布抽样
+                    let L = Math.exp(-lambda);
+                    let k = 0;
+                    let p_val = 1;
+                    do {
+                        k++;
+                        p_val *= Math.random();
+                    } while (p_val > L);
+                    return k - 1;
+                case 'exponential':
+                    // 指数分布抽样
+                    return -Math.log(1 - Math.random()) / lambda;
+                default:
+                    return 0;
+            }
+        }
+
+        function addSamples(count) {
+            for (let i = 0; i < count; i++) {
+                let sample = [];
+                for (let j = 0; j < n; j++) {
+                    sample.push(generateSample());
+                }
+                samples.push(sample);
+                sampleMeans.push(sample.reduce((a, b) => a + b, 0) / sample.length);
+            }
+        }
+
+        // 控制函数
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // 更新标签激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 更新说明显示
+            document.querySelectorAll('.explanation > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.getElementById(tabName + 'Explanation').style.display = 'block';
+            
+            resetSimulation();
+        }
+
+        function changeDistribution() {
+            distributionType = document.getElementById('distributionType').value;
+            
+            // 显示/隐藏相关参数控件
+            document.getElementById('meanContainer').style.display = 
+                document.getElementById('stdContainer').style.display = 
+                ['normal'].includes(distributionType) ? 'block' : 'none';
+                
+            document.getElementById('nContainer').style.display = 
+                document.getElementById('pContainer').style.display = 
+                (distributionType === 'binomial') ? 'block' : 'none';
+                
+            document.getElementById('lambdaContainer').style.display = 
+                (distributionType === 'poisson' || distributionType === 'exponential') ? 'block' : 'none';
+            
+            updateParameters();
+            resetSimulation();
+        }
+
+        function updateParameters() {
+            mean = parseFloat(document.getElementById('mean').value);
+            std = parseFloat(document.getElementById('std').value);
+            n = parseInt(document.getElementById('n').value);
+            p = parseFloat(document.getElementById('p').value);
+            lambda = parseFloat(document.getElementById('lambda').value);
+            
+            document.getElementById('meanValue').textContent = mean.toFixed(1);
+            document.getElementById('stdValue').textContent = std.toFixed(1);
+            document.getElementById('nValue').textContent = n;
+            document.getElementById('pValue').textContent = p.toFixed(2);
+            document.getElementById('lambdaValue').textContent = lambda.toFixed(1);
+        }
+
+        function startSimulation() {
+            isRunning = true;
+        }
+
+        function resetSimulation() {
+            samples = [];
+            sampleMeans = [];
+            isRunning = false;
+        }
+
+        // 初始化
+        updateParameters();
+    </script>
+</body>
+</html>

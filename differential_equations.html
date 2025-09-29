@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微分方程</title>
+    <style>
+        /* === CSS 变量定义 - 确保主题一致性 === */
+        :root {
+            --primary-color: #e74c3c;
+            --primary-dark: #c0392b;
+            --secondary-color: #ecf0f1;
+            --text-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --control-bg: #fedbd0;
+            --header-gradient: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        /* === 基础样式重置 === */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* === 导航菜单样式 === */
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-button:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .nav-button.active {
+            background: #3498db;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+        }
+
+        /* === 页面头部样式 === */
+        header {
+            text-align: center;
+            background: var(--header-gradient);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.8em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        /* === 可视化容器样式 === */
+        #sketch-container {
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            background: white;
+            margin: 25px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            height: 600px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* === 控制面板样式 === */
+        .controls {
+            background: var(--control-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .controls h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-size: 1.5em;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-group h4 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .slider-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 16px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        /* === 按钮样式 === */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(231, 76, 60, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #95a5a6;
+        }
+
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+
+        /* === 说明区域样式 === */
+        .explanation {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin: 25px 0;
+        }
+
+        .explanation h3 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .explanation p {
+            margin-bottom: 15px;
+        }
+
+        .explanation ul, .explanation ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .explanation li {
+            margin-bottom: 8px;
+        }
+
+        .math-equation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        /* === 标签页样式 === */
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #bdc3c7;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: var(--text-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #95a5a6;
+            color: white;
+        }
+
+        /* === 响应式设计 === */
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-button {
+                width: 90%;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">特征值与特征向量</a>
+            <a href="fourier.html" class="nav-button">傅里叶变换</a>
+            <a href="gradient_descent.html" class="nav-button">梯度下降</a>
+            <a href="probability.html" class="nav-button">概率分布</a>
+            <a href="differential_equations.html" class="nav-button active">微分方程</a>
+        </div>
+    </nav>
+
+    <header>
+        <h1>微分方程与振动系统</h1>
+        <p class="subtitle">二阶线性微分方程与物理振动模型</p>
+    </header>
+    
+    <main>
+        <div class="tab-container">
+            <button class="tab active" onclick="switchTab('harmonic')">简谐振动</button>
+            <button class="tab" onclick="switchTab('damped')">阻尼振动</button>
+            <button class="tab" onclick="switchTab('forced')">受迫振动</button>
+            <button class="tab" onclick="switchTab('phase')">相图分析</button>
+        </div>
+        
+        <div id="sketch-container">
+            <!-- p5.js画布将自动创建在这里 -->
+        </div>
+        
+        <div class="controls">
+            <h3>系统参数控制</h3>
+            
+            <div class="control-grid">
+                <div class="control-group">
+                    <h4>振动参数</h4>
+                    
+                    <div class="slider-container">
+                        <label>质量 (m): 
+                            <span class="slider-value" id="massValue">1.0</span> kg
+                        </label>
+                        <input type="range" id="mass" min="0.1" max="5.0" step="0.1" value="1.0" 
+                               onchange="updateParameter('mass')">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>弹簧常数 (k): 
+                            <span class="slider-value" id="springConstantValue">2.0</span> N/m
+                        </label>
+                        <input type="range" id="springConstant" min="0.5" max="10.0" step="0.1" value="2.0" 
+                               onchange="updateParameter('springConstant')">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>阻尼系数 (c): 
+                            <span class="slider-value" id="dampingValue">0.1</span> N·s/m
+                        </label>
+                        <input type="range" id="damping" min="0.0" max="2.0" step="0.05" value="0.1" 
+                               onchange="updateParameter('damping')">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>外力参数</h4>
+                    
+                    <div class="slider-container">
+                        <label>外力振幅 (F₀): 
+                            <span class="slider-value" id="forceAmplitudeValue">0.5</span> N
+                        </label>
+                        <input type="range" id="forceAmplitude" min="0.0" max="2.0" step="0.1" value="0.5" 
+                               onchange="updateParameter('forceAmplitude')">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>外力频率 (ω): 
+                            <span class="slider-value" id="forceFrequencyValue">1.5</span> rad/s
+                        </label>
+                        <input type="range" id="forceFrequency" min="0.1" max="5.0" step="0.1" value="1.5" 
+                               onchange="updateParameter('forceFrequency')">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>初始位移 (x₀): 
+                            <span class="slider-value" id="initialPositionValue">2.0</span> m
+                        </label>
+                        <input type="range" id="initialPosition" min="-3.0" max="3.0" step="0.1" value="2.0" 
+                               onchange="updateParameter('initialPosition')">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="startSimulation()">开始模拟</button>
+                <button onclick="pauseSimulation()">暂停</button>
+                <button onclick="resetSimulation()" class="secondary">重置</button>
+                <button onclick="takeSnapshot()" class="secondary">保存快照</button>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <div id="harmonicExplanation">
+                <h3>简谐振动：无阻尼自由振动</h3>
+                <p>简谐振动是最基本的振动形式，由胡克定律描述：</p>
+                
+                <div class="math-equation">
+                    m × d²x/dt² + k × x = 0
+                </div>
+                
+                <p><strong>解析解：</strong> x(t) = A × cos(ωt + φ)</p>
+                <p><strong>其中：</strong></p>
+                <ul>
+                    <li>A: 振幅，由初始条件决定</li>
+                    <li>ω = √(k/m): 固有角频率</li>
+                    <li>φ: 初相位，由初始条件决定</li>
+                </ul>
+                
+                <p>在无阻尼情况下，系统会永远振动下去，机械能守恒。</p>
+            </div>
+            
+            <div id="dampedExplanation" style="display:none">
+                <h3>阻尼振动：能量耗散系统</h3>
+                <p>实际振动系统都存在阻尼，消耗系统能量：</p>
+                
+                <div class="math-equation">
+                    m × d²x/dt² + c × dx/dt + k × x = 0
+                </div>
+                
+                <p><strong>三种阻尼情况：</strong></p>
+                <ol>
+                    <li><strong>欠阻尼 (c² < 4mk):</strong> 系统振荡衰减</li>
+                    <li><strong>临界阻尼 (c² = 4mk):</strong> 最快回到平衡位置，无振荡</li>
+                    <li><strong>过阻尼 (c² > 4mk):</strong> 缓慢回到平衡位置，无振荡</li>
+                </ol>
+                
+                <p>阻尼使系统机械能不断减少，最终停止在平衡位置。</p>
+            </div>
+            
+            <div id="forcedExplanation" style="display:none">
+                <h3>受迫振动：共振现象</h3>
+                <p>系统在外周期力驱动下的振动：</p>
+                
+                <div class="math-equation">
+                    m × d²x/dt² + c × dx/dt + k × x = F₀ × cos(ωₜt)
+                </div>
+                
+                <p><strong>共振现象：</strong> 当外力频率接近系统固有频率时，振幅急剧增大。</p>
+                <p><strong>稳态解：</strong> x(t) = A × cos(ωₜt - δ)</p>
+                
+                <p>其中振幅A和相位差δ由系统参数和外力频率决定：</p>
+                <ul>
+                    <li>A = F₀ / √((k - mωₜ²)² + (cωₜ)²)</li>
+                    <li>tan(δ) = cωₜ / (k - mωₜ²)</li>
+                </ul>
+            </div>
+            
+            <div id="phaseExplanation" style="display:none">
+                <h3>相图分析：状态空间方法</h3>
+                <p>相图在位置-速度平面中描述系统状态：</p>
+                
+                <div class="math-equation">
+                    dx/dt = v<br>
+                    dv/dt = - (c/m) × v - (k/m) × x + (F₀/m) × cos(ωₜt)
+                </div>
+                
+                <p><strong>相图特点：</strong></p>
+                <ul>
+                    <li><strong>简谐振动：</strong> 椭圆轨道（能量守恒）</li>
+                    <li><strong>阻尼振动：</strong> 螺旋线趋向原点</li>
+                    <li><strong>受迫振动：</strong> 极限环</li>
+                </ul>
+                
+                <p>相图方法将二阶微分方程转化为一阶方程组，便于分析和数值求解。</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- 微分方程可视化代码 -->
+    <script>
+        // =============================================================================
+        // 微分方程
+        // 作者: MathSacpe
+        // 描述: 二阶线性微分方程与振动系统的交互式可视化项目
+        // =============================================================================
+
+        // =============================================
+        // 模块一: 全局常量与变量定义
+        // =============================================
+
+        /** 系统状态枚举 */
+        const SystemState = {
+            STOPPED: 'stopped',
+            RUNNING: 'running',
+            PAUSED: 'paused'
+        };
+
+        /** 标签页类型枚举 */
+        const TabType = {
+            HARMONIC: 'harmonic',
+            DAMPED: 'damped', 
+            FORCED: 'forced',
+            PHASE: 'phase'
+        };
+
+        /** 可视化配置常量 */
+        const VISUAL_CONFIG = {
+            CANVAS_WIDTH: 800,
+            CANVAS_HEIGHT: 600,
+            TIME_SCALE: 0.05,           // 时间缩放因子
+            MAX_HISTORY: 500,           // 最大历史记录点数
+            SPRING_SEGMENTS: 20,        // 弹簧绘制段数
+            MASS_RADIUS: 30,            // 质量块半径
+            EQUILIBRIUM_X: 400,         // 平衡位置x坐标
+            AMPLITUDE_SCALE: 80         // 振幅缩放因子
+        };
+
+        // =============================================
+        // 模块二: 系统状态管理
+        // =============================================
+
+        /** 振动系统状态类 */
+        class VibrationSystem {
+            constructor() {
+                // 系统参数
+                this.mass = 1.0;                    // 质量 (kg)
+                this.springConstant = 2.0;          // 弹簧常数 (N/m)
+                this.dampingCoefficient = 0.1;      // 阻尼系数 (N·s/m)
+                this.forceAmplitude = 0.5;          // 外力振幅 (N)
+                this.forceFrequency = 1.5;          // 外力频率 (rad/s)
+                this.initialPosition = 2.0;         // 初始位移 (m)
+                
+                // 系统状态变量
+                this.position = this.initialPosition;   // 当前位置 (m)
+                this.velocity = 0.0;                   // 当前速度 (m/s)
+                this.time = 0.0;                       // 当前时间 (s)
+                
+                // 模拟状态
+                this.state = SystemState.STOPPED;
+                
+                // 历史记录
+                this.positionHistory = [];
+                this.velocityHistory = [];
+                this.timeHistory = [];
+                
+                // 快照存储
+                this.snapshots = [];
+            }
+
+            /**
+             * 计算系统加速度 (d²x/dt²)
+             * @returns {number} 加速度值
+             */
+            calculateAcceleration() {
+                const springForce = -this.springConstant * this.position;
+                const dampingForce = -this.dampingCoefficient * this.velocity;
+                const externalForce = this.forceAmplitude * Math.cos(this.forceFrequency * this.time);
+                
+                return (springForce + dampingForce + externalForce) / this.mass;
+            }
+
+            /**
+             * 执行一个数值积分步骤 (Runge-Kutta 4阶方法)
+             * @param {number} dt - 时间步长
+             */
+            integrateStep(dt) {
+                // RK4方法计算下一个状态
+                const x = this.position;
+                const v = this.velocity;
+                const t = this.time;
+                
+                // k1: 初始斜率
+                const k1v = this.calculateAcceleration();
+                const k1x = v;
+                
+                // k2: 中间斜率
+                this.position = x + 0.5 * dt * k1x;
+                this.velocity = v + 0.5 * dt * k1v;
+                this.time = t + 0.5 * dt;
+                const k2v = this.calculateAcceleration();
+                const k2x = this.velocity;
+                
+                // k3: 另一个中间斜率
+                this.position = x + 0.5 * dt * k2x;
+                this.velocity = v + 0.5 * dt * k2v;
+                const k3v = this.calculateAcceleration();
+                const k3x = this.velocity;
+                
+                // k4: 最终斜率
+                this.position = x + dt * k3x;
+                this.velocity = v + dt * k3v;
+                this.time = t + dt;
+                const k4v = this.calculateAcceleration();
+                const k4x = this.velocity;
+                
+                // 组合斜率得到最终结果
+                this.position = x + (dt / 6) * (k1x + 2*k2x + 2*k3x + k4x);
+                this.velocity = v + (dt / 6) * (k1v + 2*k2v + 2*k3v + k4v);
+                this.time = t + dt;
+                
+                // 恢复原始状态变量
+                this.time = t + dt;
+            }
+
+            /**
+             * 更新系统状态
+             */
+            update() {
+                if (this.state !== SystemState.RUNNING) return;
+                
+                const dt = VISUAL_CONFIG.TIME_SCALE;
+                this.integrateStep(dt);
+                
+                // 记录历史数据
+                this.recordHistory();
+                
+                // 限制历史数据大小
+                if (this.positionHistory.length > VISUAL_CONFIG.MAX_HISTORY) {
+                    this.positionHistory.shift();
+                    this.velocityHistory.shift();
+                    this.timeHistory.shift();
+                }
+            }
+
+            /**
+             * 记录当前状态到历史
+             */
+            recordHistory() {
+                this.positionHistory.push(this.position);
+                this.velocityHistory.push(this.velocity);
+                this.timeHistory.push(this.time);
+            }
+
+            /**
+             * 重置系统状态
+             */
+            reset() {
+                this.position = this.initialPosition;
+                this.velocity = 0.0;
+                this.time = 0.0;
+                this.positionHistory = [];
+                this.velocityHistory = [];
+                this.timeHistory = [];
+                this.state = SystemState.STOPPED;
+            }
+
+            /**
+             * 保存当前状态快照
+             */
+            takeSnapshot() {
+                this.snapshots.push({
+                    positionHistory: [...this.positionHistory],
+                    velocityHistory: [...this.velocityHistory],
+                    timeHistory: [...this.timeHistory],
+                    params: {
+                        mass: this.mass,
+                        springConstant: this.springConstant,
+                        dampingCoefficient: this.dampingCoefficient,
+                        forceAmplitude: this.forceAmplitude,
+                        forceFrequency: this.forceFrequency
+                    }
+                });
+                
+                // 限制快照数量
+                if (this.snapshots.length > 5) {
+                    this.snapshots.shift();
+                }
+            }
+
+            /**
+             * 计算系统固有频率
+             * @returns {number} 固有频率 (rad/s)
+             */
+            getNaturalFrequency() {
+                return Math.sqrt(this.springConstant / this.mass);
+            }
+
+            /**
+             * 计算阻尼比
+             * @returns {number} 阻尼比 (无量纲)
+             */
+            getDampingRatio() {
+                const criticalDamping = 2 * Math.sqrt(this.mass * this.springConstant);
+                return this.dampingCoefficient / criticalDamping;
+            }
+        }
+
+        // =============================================
+        // 模块三: 可视化渲染器
+        // =============================================
+
+        /** 可视化渲染器类 */
+        class VisualizationRenderer {
+            constructor() {
+                this.currentTab = TabType.HARMONIC;
+                this.system = new VibrationSystem();
+            }
+
+            /**
+             * 设置p5.js画布
+             */
+            setup() {
+                createCanvas(VISUAL_CONFIG.CANVAS_WIDTH, VISUAL_CONFIG.CANVAS_HEIGHT)
+                    .parent('sketch-container');
+                
+                // 初始化系统
+                this.system.reset();
+            }
+
+            /**
+             * 主绘制循环
+             */
+            draw() {
+                background(250);
+                
+                // 更新系统状态
+                this.system.update();
+                
+                // 根据当前标签页渲染不同内容
+                switch (this.currentTab) {
+                    case TabType.HARMONIC:
+                    case TabType.DAMPED:
+                    case TabType.FORCED:
+                        this.renderTimeDomain();
+                        break;
+                    case TabType.PHASE:
+                        this.renderPhasePortrait();
+                        break;
+                }
+                
+                // 显示系统信息
+                this.renderSystemInfo();
+            }
+
+            /**
+             * 渲染时域振动图
+             */
+            renderTimeDomain() {
+                push();
+                
+                // 绘制坐标系
+                this.drawCoordinateSystem();
+                
+                // 绘制弹簧和质量块
+                this.drawSpringMassSystem();
+                
+                // 绘制位移时间曲线
+                this.drawPositionTimeCurve();
+                
+                pop();
+            }
+
+            /**
+             * 渲染相图
+             */
+            renderPhasePortrait() {
+                push();
+                translate(VISUAL_CONFIG.CANVAS_WIDTH / 2, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+                scale(1, -1); // 翻转Y轴
+                
+                // 绘制坐标轴
+                this.drawPhaseAxes();
+                
+                // 绘制相轨迹
+                this.drawPhaseTrajectory();
+                
+                // 绘制当前状态点
+                this.drawCurrentStatePoint();
+                
+                // 绘制快照
+                this.drawSnapshots();
+                
+                pop();
+            }
+
+            /**
+             * 绘制坐标系
+             */
+            drawCoordinateSystem() {
+                stroke(200);
+                strokeWeight(1);
+                
+                // 绘制网格
+                for (let x = 0; x <= VISUAL_CONFIG.CANVAS_WIDTH; x += 50) {
+                    line(x, 0, x, VISUAL_CONFIG.CANVAS_HEIGHT);
+                }
+                for (let y = 0; y <= VISUAL_CONFIG.CANVAS_HEIGHT; y += 50) {
+                    line(0, y, VISUAL_CONFIG.CANVAS_WIDTH, y);
+                }
+                
+                // 绘制坐标轴
+                stroke(0);
+                strokeWeight(2);
+                line(0, VISUAL_CONFIG.CANVAS_HEIGHT / 2, VISUAL_CONFIG.CANVAS_WIDTH, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+                line(VISUAL_CONFIG.EQUILIBRIUM_X, 0, VISUAL_CONFIG.EQUILIBRIUM_X, VISUAL_CONFIG.CANVAS_HEIGHT);
+            }
+
+            /**
+             * 绘制弹簧-质量系统
+             */
+            drawSpringMassSystem() {
+                const equilibriumX = VISUAL_CONFIG.EQUILIBRIUM_X;
+                const currentX = equilibriumX + this.system.position * VISUAL_CONFIG.AMPLITUDE_SCALE;
+                const baseY = 100;
+                
+                // 绘制固定端
+                fill(100);
+                rect(equilibriumX - 100, baseY - 20, 200, 20);
+                
+                // 绘制弹簧
+                stroke(150, 100, 50);
+                strokeWeight(3);
+                this.drawSpring(equilibriumX - 80, baseY, currentX, baseY, VISUAL_CONFIG.SPRING_SEGMENTS);
+                
+                // 绘制质量块
+                fill(70, 130, 180);
+                stroke(50, 100, 150);
+                strokeWeight(2);
+                circle(currentX, baseY + VISUAL_CONFIG.MASS_RADIUS, VISUAL_CONFIG.MASS_RADIUS * 2);
+                
+                // 绘制平衡位置标记
+                stroke(255, 0, 0, 100);
+                strokeWeight(1);
+                line(equilibriumX, baseY + VISUAL_CONFIG.MASS_RADIUS * 2, 
+                     equilibriumX, VISUAL_CONFIG.CANVAS_HEIGHT - 50);
+            }
+
+            /**
+             * 绘制弹簧
+             */
+            drawSpring(x1, y1, x2, y2, segments) {
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const segmentLength = dx / segments;
+                
+                beginShape();
+                vertex(x1, y1);
+                
+                for (let i = 1; i < segments; i++) {
+                    const x = x1 + i * segmentLength;
+                    const offset = (i % 2 === 0) ? 10 : -10;
+                    vertex(x, y1 + offset);
+                }
+                
+                vertex(x2, y2);
+                endShape();
+            }
+
+            /**
+             * 绘制位移时间曲线
+             */
+            drawPositionTimeCurve() {
+                if (this.system.positionHistory.length < 2) return;
+                
+                // 绘制时间曲线
+                stroke(0, 100, 200);
+                strokeWeight(3);
+                noFill();
+                
+                beginShape();
+                for (let i = 0; i < this.system.positionHistory.length; i++) {
+                    const x = map(this.system.timeHistory[i], 0, 20, 50, VISUAL_CONFIG.CANVAS_WIDTH - 50);
+                    const y = map(this.system.positionHistory[i], -3, 3, 
+                                 VISUAL_CONFIG.CANVAS_HEIGHT - 50, 50);
+                    vertex(x, y);
+                }
+                endShape();
+                
+                // 绘制当前时间点标记
+                const currentX = map(this.system.time, 0, 20, 50, VISUAL_CONFIG.CANVAS_WIDTH - 50);
+                const currentY = map(this.system.position, -3, 3, 
+                                   VISUAL_CONFIG.CANVAS_HEIGHT - 50, 50);
+                
+                fill(255, 0, 0);
+                noStroke();
+                circle(currentX, currentY, 8);
+            }
+
+            /**
+             * 绘制相图坐标轴
+             */
+            drawPhaseAxes() {
+                stroke(200);
+                strokeWeight(1);
+                
+                // 绘制网格
+                for (let x = -VISUAL_CONFIG.CANVAS_WIDTH/2; x <= VISUAL_CONFIG.CANVAS_WIDTH/2; x += 50) {
+                    line(x, -VISUAL_CONFIG.CANVAS_HEIGHT/2, x, VISUAL_CONFIG.CANVAS_HEIGHT/2);
+                }
+                for (let y = -VISUAL_CONFIG.CANVAS_HEIGHT/2; y <= VISUAL_CONFIG.CANVAS_HEIGHT/2; y += 50) {
+                    line(-VISUAL_CONFIG.CANVAS_WIDTH/2, y, VISUAL_CONFIG.CANVAS_WIDTH/2, y);
+                }
+                
+                // 绘制坐标轴
+                stroke(0);
+                strokeWeight(2);
+                line(-VISUAL_CONFIG.CANVAS_WIDTH/2, 0, VISUAL_CONFIG.CANVAS_WIDTH/2, 0);
+                line(0, -VISUAL_CONFIG.CANVAS_HEIGHT/2, 0, VISUAL_CONFIG.CANVAS_HEIGHT/2);
+                
+                // 坐标轴标签
+                push();
+                scale(1, -1);
+                fill(0);
+                noStroke();
+                textAlign(CENTER, CENTER);
+                text("位置 (x)", VISUAL_CONFIG.CANVAS_WIDTH/2 - 30, 20);
+                text("速度 (v)", -20, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 30);
+                pop();
+            }
+
+            /**
+             * 绘制相轨迹
+             */
+            drawPhaseTrajectory() {
+                if (this.system.positionHistory.length < 2) return;
+                
+                // 绘制相轨迹
+                stroke(0, 100, 200);
+                strokeWeight(2);
+                noFill();
+                
+                beginShape();
+                for (let i = 0; i < this.system.positionHistory.length; i++) {
+                    const x = this.system.positionHistory[i] * 50;
+                    const y = this.system.velocityHistory[i] * 50;
+                    vertex(x, y);
+                }
+                endShape();
+            }
+
+            /**
+             * 绘制当前状态点
+             */
+            drawCurrentStatePoint() {
+                const x = this.system.position * 50;
+                const y = this.system.velocity * 50;
+                
+                fill(255, 0, 0);
+                noStroke();
+                circle(x, y, 10);
+                
+                // 显示坐标值
+                push();
+                scale(1, -1);
+                fill(0);
+                textAlign(LEFT, TOP);
+                text(`(${this.system.position.toFixed(2)}, ${this.system.velocity.toFixed(2)})`, 
+                     x + 10, -y + 10);
+                pop();
+            }
+
+            /**
+             * 绘制快照
+             */
+            drawSnapshots() {
+                this.system.snapshots.forEach((snapshot, index) => {
+                    const colors = [
+                        [255, 0, 0],
+                        [0, 150, 0], 
+                        [150, 0, 150],
+                        [0, 150, 150],
+                        [150, 150, 0]
+                    ];
+                    
+                    const color = colors[index % colors.length];
+                    
+                    stroke(color[0], color[1], color[2], 150);
+                    strokeWeight(1.5);
+                    noFill();
+                    
+                    beginShape();
+                    for (let i = 0; i < snapshot.positionHistory.length; i++) {
+                        const x = snapshot.positionHistory[i] * 50;
+                        const y = snapshot.velocityHistory[i] * 50;
+                        vertex(x, y);
+                    }
+                    endShape();
+                });
+            }
+
+            /**
+             * 显示系统信息
+             */
+            renderSystemInfo() {
+                push();
+                fill(0);
+                noStroke();
+                textAlign(LEFT, TOP);
+                textSize(14);
+                
+                const naturalFreq = this.system.getNaturalFrequency();
+                const dampingRatio = this.system.getDampingRatio();
+                
+                text(`时间: ${this.system.time.toFixed(2)} s`, 20, 20);
+                text(`位置: ${this.system.position.toFixed(3)} m`, 20, 40);
+                text(`速度: ${this.system.velocity.toFixed(3)} m/s`, 20, 60);
+                text(`固有频率: ${naturalFreq.toFixed(3)} rad/s`, 20, 80);
+                text(`阻尼比: ${dampingRatio.toFixed(3)}`, 20, 100);
+                
+                // 显示阻尼状态
+                if (dampingRatio < 1) {
+                    text(`状态: 欠阻尼`, 20, 120);
+                } else if (dampingRatio === 1) {
+                    text(`状态: 临界阻尼`, 20, 120);
+                } else {
+                    text(`状态: 过阻尼`, 20, 120);
+                }
+                
+                pop();
+            }
+        }
+
+        // =============================================
+        // 模块四: 全局实例与初始化
+        // =============================================
+
+        /** 全局可视化渲染器实例 */
+        let visualizer;
+
+        /**
+         * p5.js setup函数
+         */
+        function setup() {
+            visualizer = new VisualizationRenderer();
+            visualizer.setup();
+            
+            // 初始化参数显示
+            updateAllParameterDisplays();
+        }
+
+        /**
+         * p5.js draw函数
+         */
+        function draw() {
+            if (visualizer) {
+                visualizer.draw();
+            }
+        }
+
+        // =============================================
+        // 模块五: 用户界面控制函数
+        // =============================================
+
+        /**
+         * 切换标签页
+         * @param {string} tabName - 标签页名称
+         */
+        function switchTab(tabName) {
+            // 更新标签激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 更新可视化标签页
+            if (visualizer) {
+                visualizer.currentTab = tabName;
+            }
+            
+            // 更新说明显示
+            document.querySelectorAll('.explanation > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.getElementById(tabName + 'Explanation').style.display = 'block';
+            
+            // 重置模拟
+            resetSimulation();
+        }
+
+        /**
+         * 更新参数值
+         * @param {string} paramName - 参数名称
+         */
+        function updateParameter(paramName) {
+            if (!visualizer) return;
+            
+            const system = visualizer.system;
+            const value = parseFloat(document.getElementById(paramName).value);
+            
+            switch (paramName) {
+                case 'mass':
+                    system.mass = value;
+                    break;
+                case 'springConstant':
+                    system.springConstant = value;
+                    break;
+                case 'damping':
+                    system.dampingCoefficient = value;
+                    break;
+                case 'forceAmplitude':
+                    system.forceAmplitude = value;
+                    break;
+                case 'forceFrequency':
+                    system.forceFrequency = value;
+                    break;
+                case 'initialPosition':
+                    system.initialPosition = value;
+                    system.position = value;
+                    break;
+            }
+            
+            // 更新显示值
+            updateParameterDisplay(paramName, value);
+        }
+
+        /**
+         * 更新参数显示值
+         * @param {string} paramName - 参数名称
+         * @param {number} value - 参数值
+         */
+        function updateParameterDisplay(paramName, value) {
+            const displayElement = document.getElementById(paramName + 'Value');
+            if (displayElement) {
+                displayElement.textContent = value.toFixed(
+                    paramName === 'initialPosition' ? 1 : 
+                    paramName === 'damping' || paramName === 'forceAmplitude' ? 2 : 1
+                );
+            }
+        }
+
+        /**
+         * 更新所有参数显示
+         */
+        function updateAllParameterDisplays() {
+            const parameters = [
+                'mass', 'springConstant', 'damping', 
+                'forceAmplitude', 'forceFrequency', 'initialPosition'
+            ];
+            
+            parameters.forEach(param => {
+                const element = document.getElementById(param);
+                if (element) {
+                    updateParameterDisplay(param, parseFloat(element.value));
+                }
+            });
+        }
+
+        /**
+         * 开始模拟
+         */
+        function startSimulation() {
+            if (visualizer && visualizer.system) {
+                visualizer.system.state = SystemState.RUNNING;
+            }
+        }
+
+        /**
+         * 暂停模拟
+         */
+        function pauseSimulation() {
+            if (visualizer && visualizer.system) {
+                visualizer.system.state = SystemState.PAUSED;
+            }
+        }
+
+        /**
+         * 重置模拟
+         */
+        function resetSimulation() {
+            if (visualizer && visualizer.system) {
+                visualizer.system.reset();
+            }
+        }
+
+        /**
+         * 保存快照
+         */
+        function takeSnapshot() {
+            if (visualizer && visualizer.system) {
+                visualizer.system.takeSnapshot();
+            }
+        }
+
+        // =============================================
+        // 模块六: 工具函数
+        // =============================================
+
+        /**
+         * 格式化数值显示
+         * @param {number} value - 要格式化的数值
+         * @param {number} decimals - 小数位数
+         * @returns {string} 格式化后的字符串
+         */
+        function formatNumber(value, decimals = 3) {
+            return value.toFixed(decimals);
+        }
+
+        /**
+         * 限制数值范围
+         * @param {number} value - 输入值
+         * @param {number} min - 最小值
+         * @param {number} max - 最大值
+         * @returns {number} 限制后的值
+         */
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+    </script>
+</body>
+</html>
