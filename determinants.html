@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行列式的几何意义</title>
+    <style>
+        /* === CSS 变量定义 - 确保主题一致性 === */
+        :root {
+            --primary-color: #3498db;
+            --primary-dark: #2980b9;
+            --secondary-color: #ecf0f1;
+            --text-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --control-bg: #d6eaf8;
+            --header-gradient: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            --area-positive: rgba(46, 204, 113, 0.3);
+            --area-negative: rgba(231, 76, 60, 0.3);
+        }
+
+        /* === 基础样式重置 === */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        /* === 导航菜单样式 === */
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-button:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .nav-button.active {
+            background: #3498db;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+        }
+
+        /* === 页面头部样式 === */
+        header {
+            text-align: center;
+            background: var(--header-gradient);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.8em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        /* === 可视化容器样式 === */
+        .visualization-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 968px) {
+            .visualization-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sketch-panel {
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sketch-panel h3 {
+            text-align: center;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            margin: 0;
+            border-radius: 10px 10px 0 0;
+        }
+
+        /* === 控制面板样式 === */
+        .controls {
+            background: var(--control-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .controls h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-size: 1.5em;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-group h4 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .matrix-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .matrix-input {
+            text-align: center;
+        }
+
+        .matrix-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .matrix-input input {
+            width: 80px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .matrix-input input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .slider-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 16px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        /* === 按钮样式 === */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #95a5a6;
+        }
+
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+
+        /* === 说明区域样式 === */
+        .explanation {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin: 25px 0;
+        }
+
+        .explanation h3 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .explanation p {
+            margin-bottom: 15px;
+        }
+
+        .explanation ul, .explanation ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .explanation li {
+            margin-bottom: 8px;
+        }
+
+        .math-equation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .info-panel {
+            background: #e8f4fd;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        /* === 标签页样式 === */
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #bdc3c7;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: var(--text-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #95a5a6;
+            color: white;
+        }
+
+        /* === 响应式设计 === */
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .matrix-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-button {
+                width: 90%;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">特征值与特征向量</a>
+            <a href="determinants.html" class="nav-button active">行列式几何</a>
+            <a href="fourier.html" class="nav-button">傅里叶变换</a>
+            <a href="gradient_descent.html" class="nav-button">梯度下降</a>
+            <a href="probability.html" class="nav-button">概率分布</a>
+            <a href="differential_equations.html" class="nav-button">微分方程</a>
+        </div>
+    </nav>
+
+    <header>
+        <h1>行列式的几何意义</h1>
+        <p class="subtitle">探索线性变换中的面积缩放与定向概念</p>
+    </header>
+    
+    <main>
+        <div class="tab-container">
+            <button class="tab active" onclick="switchTab('areaScaling')">面积缩放</button>
+            <button class="tab" onclick="switchTab('orientation')">定向与符号</button>
+            <button class="tab" onclick="switchTab('volume')">高维体积</button>
+            <button class="tab" onclick="switchTab('applications')">应用实例</button>
+        </div>
+        
+        <div class="visualization-container">
+            <div class="sketch-panel">
+                <h3>原始空间</h3>
+                <div id="original-space"></div>
+            </div>
+            <div class="sketch-panel">
+                <h3>变换后空间</h3>
+                <div id="transformed-space"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>矩阵参数控制</h3>
+            
+            <div class="control-grid">
+                <div class="control-group">
+                    <h4>变换矩阵 A</h4>
+                    
+                    <div class="matrix-controls">
+                        <div class="matrix-input">
+                            <label>a₁₁</label>
+                            <input type="number" id="a11" value="2" step="0.1" onchange="updateMatrix()">
+                        </div>
+                        <div class="matrix-input">
+                            <label>a₁₂</label>
+                            <input type="number" id="a12" value="1" step="0.1" onchange="updateMatrix()">
+                        </div>
+                        <div class="matrix-input">
+                            <label>a₂₁</label>
+                            <input type="number" id="a21" value="1" step="0.1" onchange="updateMatrix()">
+                        </div>
+                        <div class="matrix-input">
+                            <label>a₂₂</label>
+                            <input type="number" id="a22" value="2" step="0.1" onchange="updateMatrix()">
+                        </div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>矩阵范数缩放: 
+                            <span class="slider-value" id="matrixScaleValue">1.00</span>
+                        </label>
+                        <input type="range" id="matrixScale" min="0.1" max="2.0" step="0.05" value="1.0" 
+                               onchange="updateMatrixScale()">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>预设变换</h4>
+                    
+                    <div class="slider-container">
+                        <label>选择预设: 
+                            <select id="presetTransform" onchange="applyPreset()">
+                                <option value="identity">恒等变换</option>
+                                <option value="rotation">旋转</option>
+                                <option value="shear">剪切</option>
+                                <option value="scale">缩放</option>
+                                <option value="reflection">反射</option>
+                                <option value="singular">奇异矩阵</option>
+                                <option value="custom">自定义</option>
+                            </select>
+                        </label>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>旋转角度: 
+                            <span class="slider-value" id="rotationValue">0</span>°
+                        </label>
+                        <input type="range" id="rotation" min="0" max="360" step="1" value="0" 
+                               onchange="updateRotation()">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>缩放因子: 
+                            <span class="slider-value" id="scaleValue">1.00</span>
+                        </label>
+                        <input type="range" id="scale" min="0.1" max="3.0" step="0.1" value="1.0" 
+                               onchange="updateScale()">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <strong>行列式信息:</strong>
+                <span id="determinantInfo">计算中...</span>
+            </div>
+            
+            <div class="button-group">
+                <button onclick="animateTransformation()">播放动画</button>
+                <button onclick="resetTransformation()" class="secondary">重置</button>
+                <button onclick="toggleGrid()" class="secondary">切换网格</button>
+                <button onclick="exportState()" class="secondary">导出状态</button>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <div id="areaScalingExplanation">
+                <h3>行列式作为面积缩放因子</h3>
+                <p>对于2×2矩阵，行列式的绝对值表示线性变换对面积的缩放比例：</p>
+                
+                <div class="math-equation">
+                    A = [[a, b], [c, d]] &nbsp;&nbsp; ⇒ &nbsp;&nbsp; det(A) = ad - bc
+                </div>
+                
+                <p><strong>几何解释：</strong></p>
+                <ul>
+                    <li>单位正方形的面积在变换后被缩放 |det(A)| 倍</li>
+                    <li>任意形状的面积都按相同比例缩放</li>
+                    <li>det(A) = 0 表示变换将空间压缩到低维（面积为零）</li>
+                    <li>|det(A)| > 1 表示放大，|det(A)| < 1 表示缩小</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>例子：</strong> 当 det(A) = 3 时，任何区域的面积都变为原来的3倍。
+                    当 det(A) = 0.5 时，面积减半。当 det(A) = 0 时，所有区域被压缩到直线或点上。
+                </div>
+            </div>
+            
+            <div id="orientationExplanation" style="display:none">
+                <h3>行列式的符号与定向</h3>
+                <p>行列式的符号包含了重要的几何信息：</p>
+                
+                <div class="math-equation">
+                    sign(det(A)) = 定向变化
+                </div>
+                
+                <p><strong>定向概念：</strong></p>
+                <ul>
+                    <li><strong>正行列式</strong>：保持定向（右手系保持右手系）</li>
+                    <li><strong>负行列式</strong>：反转定向（右手系变为左手系）</li>
+                    <li><strong>零行列式</strong>：失去定向概念（降维）</li>
+                </ul>
+                
+                <p><strong>常见情况：</strong></p>
+                <ol>
+                    <li>旋转：det = +1（保持定向）</li>
+                    <li>反射：det = -1（反转定向）</li>
+                    <li>缩放：det = 缩放因子的乘积</li>
+                    <li>剪切：det = 1（面积不变但形状改变）</li>
+                </ol>
+                
+                <div class="info-panel">
+                    <strong>提示：</strong> 观察单位正方形的顶点顺序。正行列式保持顶点顺时针或逆时针顺序，
+                    负行列式会反转这个顺序。
+                </div>
+            </div>
+            
+            <div id="volumeExplanation" style="display:none">
+                <h3>高维推广：体积缩放</h3>
+                <p>在n维空间中，行列式表示线性变换对n维体积的缩放：</p>
+                
+                <div class="math-equation">
+                    n×n 矩阵 A 的行列式 det(A) 表示单位n维立方体体积的缩放
+                </div>
+                
+                <p><strong>性质：</strong></p>
+                <ul>
+                    <li>det(AB) = det(A)det(B) - 变换复合的体积缩放是乘积</li>
+                    <li>det(A⁻¹) = 1/det(A) - 逆变换反转缩放</li>
+                    <li>det(Aᵀ) = det(A) - 转置不改变体积缩放</li>
+                </ul>
+                
+                <p><strong>3维例子：</strong></p>
+                <ul>
+                    <li>对角矩阵 diag(2,3,4)：det = 24，体积放大24倍</li>
+                    <li>旋转矩阵：det = 1，体积不变</li>
+                    <li>投影矩阵：det = 0，体积为零</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>应用：</strong> 在多重积分中，Jacobian行列式就是坐标变换的体积缩放因子，
+                    用于积分变量的变换。
+                </div>
+            </div>
+            
+            <div id="applicationsExplanation" style="display:none">
+                <h3>行列式的应用</h3>
+                <p>行列式在数学和工程中具有广泛的应用：</p>
+                
+                <p><strong>1. 可逆性判定：</strong></p>
+                <ul>
+                    <li>det(A) ≠ 0 ⇔ A 可逆</li>
+                    <li>det(A) = 0 ⇔ A 奇异（不可逆）</li>
+                </ul>
+                
+                <p><strong>2. 特征值计算：</strong></p>
+                <ul>
+                    <li>特征多项式：det(A - λI) = 0</li>
+                    <li>行列式与特征值的关系：det(A) = λ₁λ₂⋯λₙ</li>
+                </ul>
+                
+                <p><strong>3. 线性方程组：</strong></p>
+                <ul>
+                    <li>Cramer法则：用行列式表示方程组的解</li>
+                    <li>解的唯一性：系数矩阵行列式非零时唯一解</li>
+                </ul>
+                
+                <p><strong>4. 几何应用：</strong></p>
+                <ul>
+                    <li>平行四边形面积 = |det([u, v])|，其中u,v是边向量</li>
+                    <li>平行六面体体积 = |det([u, v, w])|</li>
+                    <li>三角形面积 = ½|det([u, v])|</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>现实应用：</strong> 在计算机图形学中，变换矩阵的行列式用于计算纹理映射的缩放，
+                    在物理中用于坐标变换的体积元计算。
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- 行列式几何可视化 -->
+    <script>
+        // =============================================================================
+        // 行列式几何可视化
+        // 作者: MathScape
+        // 描述: 行列式作为面积缩放因子和定向指标的几何解释
+        // =============================================================================
+
+        // =============================================
+        // 模块一: 全局常量与变量定义
+        // =============================================
+
+        /** 可视化状态枚举 */
+        const VisualizationState = {
+            STATIC: 'static',
+            ANIMATING: 'animating',
+            INTERACTIVE: 'interactive'
+        };
+
+        /** 标签页类型枚举 */
+        const TabType = {
+            AREA_SCALING: 'areaScaling',
+            ORIENTATION: 'orientation',
+            VOLUME: 'volume',
+            APPLICATIONS: 'applications'
+        };
+
+        /** 预设变换类型枚举 */
+        const PresetType = {
+            IDENTITY: 'identity',
+            ROTATION: 'rotation',
+            SHEAR: 'shear',
+            SCALE: 'scale',
+            REFLECTION: 'reflection',
+            SINGULAR: 'singular',
+            CUSTOM: 'custom'
+        };
+
+        /** 可视化配置常量 */
+        const VISUAL_CONFIG = {
+            CANVAS_WIDTH: 400,
+            CANVAS_HEIGHT: 400,
+            ANIMATION_DURATION: 2000,    // 动画时长(ms)
+            GRID_SIZE: 50,               // 网格大小
+            BASE_VECTORS: [[1, 0], [0, 1]], // 标准基向量
+            UNIT_SQUARE_COLOR: [65, 105, 225, 150],   // 单位正方形颜色
+            TRANSFORMED_COLOR: [220, 20, 60, 150],    // 变换后颜色
+            VECTOR_COLORS: [[30, 144, 255], [255, 140, 0]], // 向量颜色
+            GRID_COLOR: [200, 200, 200, 50]           // 网格颜色
+        };
+
+        // =============================================
+        // 模块二: 数学核心类
+        // =============================================
+
+        /** 二维向量类 */
+        class Vector2D {
+            constructor(x = 0, y = 0) {
+                this.x = x;
+                this.y = y;
+            }
+
+            /**
+             * 向量加法
+             * @param {Vector2D} other - 另一个向量
+             * @returns {Vector2D} 结果向量
+             */
+            add(other) {
+                return new Vector2D(this.x + other.x, this.y + other.y);
+            }
+
+            /**
+             * 向量数乘
+             * @param {number} scalar - 标量
+             * @returns {Vector2D} 结果向量
+             */
+            multiply(scalar) {
+                return new Vector2D(this.x * scalar, this.y * scalar);
+            }
+
+            /**
+             * 向量长度
+             * @returns {number} 向量模长
+             */
+            magnitude() {
+                return Math.sqrt(this.x * this.x + this.y * this.y);
+            }
+
+            /**
+             * 点积
+             * @param {Vector2D} other - 另一个向量
+             * @returns {number} 点积结果
+             */
+            dot(other) {
+                return this.x * other.x + this.y * other.y;
+            }
+
+            /**
+             * 叉积 (2D向量的伪叉积，返回标量)
+             * @param {Vector2D} other - 另一个向量
+             * @returns {number} 叉积结果
+             */
+            cross(other) {
+                return this.x * other.y - this.y * other.x;
+            }
+
+            /**
+             * 向量旋转
+             * @param {number} angle - 旋转角度(弧度)
+             * @returns {Vector2D} 旋转后的向量
+             */
+            rotate(angle) {
+                const cos = Math.cos(angle);
+                const sin = Math.sin(angle);
+                return new Vector2D(
+                    this.x * cos - this.y * sin,
+                    this.x * sin + this.y * cos
+                );
+            }
+
+            /**
+             * 转换为数组
+             * @returns {number[]} [x, y]数组
+             */
+            toArray() {
+                return [this.x, this.y];
+            }
+
+            /**
+             * 克隆向量
+             * @returns {Vector2D} 新向量
+             */
+            clone() {
+                return new Vector2D(this.x, this.y);
+            }
+        }
+
+        /** 2x2矩阵类 */
+        class Matrix2x2 {
+            constructor(a11 = 1, a12 = 0, a21 = 0, a22 = 1) {
+                this.a11 = a11;
+                this.a12 = a12;
+                this.a21 = a21;
+                this.a22 = a22;
+            }
+
+            /**
+             * 矩阵与向量乘法
+             * @param {Vector2D} vector - 输入向量
+             * @returns {Vector2D} 变换后的向量
+             */
+            multiplyVector(vector) {
+                return new Vector2D(
+                    this.a11 * vector.x + this.a12 * vector.y,
+                    this.a21 * vector.x + this.a22 * vector.y
+                );
+            }
+
+            /**
+             * 矩阵与矩阵乘法
+             * @param {Matrix2x2} other - 另一个矩阵
+             * @returns {Matrix2x2} 乘积矩阵
+             */
+            multiplyMatrix(other) {
+                return new Matrix2x2(
+                    this.a11 * other.a11 + this.a12 * other.a21,
+                    this.a11 * other.a12 + this.a12 * other.a22,
+                    this.a21 * other.a11 + this.a22 * other.a21,
+                    this.a21 * other.a12 + this.a22 * other.a22
+                );
+            }
+
+            /**
+             * 计算行列式
+             * @returns {number} 行列式值
+             */
+            determinant() {
+                return this.a11 * this.a22 - this.a12 * this.a21;
+            }
+
+            /**
+             * 计算逆矩阵
+             * @returns {Matrix2x2|null} 逆矩阵(如果存在)
+             */
+            inverse() {
+                const det = this.determinant();
+                if (Math.abs(det) < 1e-10) return null;
+                
+                return new Matrix2x2(
+                    this.a22 / det, -this.a12 / det,
+                    -this.a21 / det, this.a11 / det
+                );
+            }
+
+            /**
+             * 计算转置矩阵
+             * @returns {Matrix2x2} 转置矩阵
+             */
+            transpose() {
+                return new Matrix2x2(
+                    this.a11, this.a21,
+                    this.a12, this.a22
+                );
+            }
+
+            /**
+             * 获取特征值
+             * @returns {number[]} 特征值数组
+             */
+            eigenvalues() {
+                const trace = this.a11 + this.a22;
+                const det = this.determinant();
+                const discriminant = trace * trace - 4 * det;
+                
+                if (discriminant < 0) {
+                    // 复数特征值，返回实部和虚部
+                    const real = trace / 2;
+                    const imag = Math.sqrt(-discriminant) / 2;
+                    return [real, imag];
+                }
+                
+                const sqrtDisc = Math.sqrt(discriminant);
+                return [
+                    (trace + sqrtDisc) / 2,
+                    (trace - sqrtDisc) / 2
+                ];
+            }
+
+            /**
+             * 创建旋转矩阵
+             * @param {number} angle - 旋转角度(弧度)
+             * @returns {Matrix2x2} 旋转矩阵
+             */
+            static rotation(angle) {
+                const cos = Math.cos(angle);
+                const sin = Math.sin(angle);
+                return new Matrix2x2(cos, -sin, sin, cos);
+            }
+
+            /**
+             * 创建缩放矩阵
+             * @param {number} sx - x方向缩放
+             * @param {number} sy - y方向缩放
+             * @returns {Matrix2x2} 缩放矩阵
+             */
+            static scaling(sx, sy) {
+                return new Matrix2x2(sx, 0, 0, sy);
+            }
+
+            /**
+             * 创建剪切矩阵
+             * @param {number} kx - x方向剪切
+             * @param {number} ky - y方向剪切
+             * @returns {Matrix2x2} 剪切矩阵
+             */
+            static shearing(kx, ky) {
+                return new Matrix2x2(1, kx, ky, 1);
+            }
+
+            /**
+             * 创建反射矩阵
+             * @param {number} angle - 反射轴角度(弧度)
+             * @returns {Matrix2x2} 反射矩阵
+             */
+            static reflection(angle) {
+                const cos = Math.cos(2 * angle);
+                const sin = Math.sin(2 * angle);
+                return new Matrix2x2(cos, sin, sin, -cos);
+            }
+        }
+
+        // =============================================
+        // 模块三: 可视化系统类
+        // =============================================
+
+        /** 行列式可视化系统 */
+        class DeterminantVisualization {
+            constructor() {
+                // 变换矩阵
+                this.matrix = new Matrix2x2(2, 1, 1, 2);
+                this.baseVectors = VISUAL_CONFIG.BASE_VECTORS.map(
+                    v => new Vector2D(v[0], v[1])
+                );
+                
+                // 变换状态
+                this.transformedVectors = this.transformVectors();
+                this.animationProgress = 0;
+                this.animationStartTime = 0;
+                this.state = VisualizationState.STATIC;
+                
+                // 显示设置
+                this.showGrid = true;
+                this.currentTab = TabType.AREA_SCALING;
+                
+                // 单位正方形顶点
+                this.unitSquare = [
+                    new Vector2D(0, 0),
+                    new Vector2D(1, 0),
+                    new Vector2D(1, 1),
+                    new Vector2D(0, 1)
+                ];
+            }
+
+            /**
+             * 变换基向量
+             * @returns {Vector2D[]} 变换后的向量
+             */
+            transformVectors() {
+                return this.baseVectors.map(v => this.matrix.multiplyVector(v));
+            }
+
+            /**
+             * 变换单位正方形
+             * @returns {Vector2D[]} 变换后的正方形顶点
+             */
+            transformUnitSquare() {
+                return this.unitSquare.map(v => this.matrix.multiplyVector(v));
+            }
+
+            /**
+             * 计算变换后的面积
+             * @returns {number} 面积
+             */
+            calculateTransformedArea() {
+                const v1 = this.transformedVectors[0];
+                const v2 = this.transformedVectors[1];
+                return Math.abs(v1.cross(v2));
+            }
+
+            /**
+             * 获取动画插值后的向量
+             * @returns {Vector2D[]} 动画中的向量
+             */
+            getAnimatedVectors() {
+                if (this.state !== VisualizationState.ANIMATING) {
+                    return this.transformedVectors;
+                }
+                
+                // 线性插值：从基向量到变换后的向量
+                return this.baseVectors.map((baseVector, index) => {
+                    const targetVector = this.transformedVectors[index];
+                    return new Vector2D(
+                        baseVector.x + (targetVector.x - baseVector.x) * this.animationProgress,
+                        baseVector.y + (targetVector.y - baseVector.y) * this.animationProgress
+                    );
+                });
+            }
+
+            /**
+             * 获取动画插值后的单位正方形
+             * @returns {Vector2D[]} 动画中的正方形顶点
+             */
+            getAnimatedUnitSquare() {
+                if (this.state !== VisualizationState.ANIMATING) {
+                    return this.transformUnitSquare();
+                }
+                
+                // 线性插值：从原始正方形到变换后的平行四边形
+                return this.unitSquare.map(vertex => {
+                    const targetVertex = this.matrix.multiplyVector(vertex);
+                    return new Vector2D(
+                        vertex.x + (targetVertex.x - vertex.x) * this.animationProgress,
+                        vertex.y + (targetVertex.y - vertex.y) * this.animationProgress
+                    );
+                });
+            }
+
+            /**
+             * 开始动画
+             */
+            startAnimation() {
+                this.animationProgress = 0;
+                this.animationStartTime = Date.now();
+                this.state = VisualizationState.ANIMATING;
+            }
+
+            /**
+             * 更新动画状态
+             */
+            updateAnimation() {
+                if (this.state !== VisualizationState.ANIMATING) return;
+                
+                const elapsed = Date.now() - this.animationStartTime;
+                this.animationProgress = Math.min(elapsed / VISUAL_CONFIG.ANIMATION_DURATION, 1);
+                
+                if (this.animationProgress >= 1) {
+                    this.state = VisualizationState.STATIC;
+                }
+            }
+
+            /**
+             * 应用预设变换
+             * @param {string} preset - 预设类型
+             */
+            applyPreset(preset) {
+                switch (preset) {
+                    case PresetType.IDENTITY:
+                        this.matrix = new Matrix2x2(1, 0, 0, 1);
+                        break;
+                    case PresetType.ROTATION:
+                        this.matrix = Matrix2x2.rotation(Math.PI / 4);
+                        break;
+                    case PresetType.SHEAR:
+                        this.matrix = Matrix2x2.shearing(0.5, 0);
+                        break;
+                    case PresetType.SCALE:
+                        this.matrix = Matrix2x2.scaling(1.5, 0.8);
+                        break;
+                    case PresetType.REFLECTION:
+                        this.matrix = Matrix2x2.reflection(Math.PI / 6);
+                        break;
+                    case PresetType.SINGULAR:
+                        this.matrix = new Matrix2x2(1, 2, 2, 4); // 第二行是第一行的倍数
+                        break;
+                    case PresetType.CUSTOM:
+                        // 保持当前矩阵
+                        break;
+                }
+                
+                this.transformedVectors = this.transformVectors();
+            }
+
+            /**
+             * 设置旋转矩阵
+             * @param {number} degrees - 旋转角度(度)
+             */
+            setRotation(degrees) {
+                const radians = degrees * Math.PI / 180;
+                this.matrix = Matrix2x2.rotation(radians);
+                this.transformedVectors = this.transformVectors();
+            }
+
+            /**
+             * 设置缩放矩阵
+             * @param {number} scale - 缩放因子
+             */
+            setScale(scale) {
+                this.matrix = Matrix2x2.scaling(scale, scale);
+                this.transformedVectors = this.transformVectors();
+            }
+
+            /**
+             * 更新矩阵元素
+             * @param {number} a11 - 元素11
+             * @param {number} a12 - 元素12
+             * @param {number} a21 - 元素21
+             * @param {number} a22 - 元素22
+             */
+            updateMatrix(a11, a12, a21, a22) {
+                this.matrix = new Matrix2x2(a11, a12, a21, a22);
+                this.transformedVectors = this.transformVectors();
+            }
+        }
+
+        /** 可视化渲染器 */
+        class DeterminantRenderer {
+            constructor() {
+                this.system = new DeterminantVisualization();
+            }
+
+            /**
+             * 绘制原始空间
+             * @param {p5} p - p5.js实例
+             */
+            drawOriginalSpace(p) {
+                p.background(250);
+                p.translate(VISUAL_CONFIG.CANVAS_WIDTH / 2, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+                p.scale(1, -1); // 数学坐标系
+                
+                // 绘制网格
+                if (this.system.showGrid) {
+                    this.drawGrid(p);
+                }
+                
+                // 绘制坐标轴
+                this.drawAxes(p);
+                
+                // 绘制单位正方形和基向量
+                this.drawUnitSquare(p);
+                this.drawBaseVectors(p);
+            }
+
+            /**
+             * 绘制变换后空间
+             * @param {p5} p - p5.js实例
+             */
+            drawTransformedSpace(p) {
+                // 更新动画状态
+                this.system.updateAnimation();
+                
+                p.background(250);
+                p.translate(VISUAL_CONFIG.CANVAS_WIDTH / 2, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+                p.scale(1, -1); // 数学坐标系
+                
+                // 绘制网格
+                if (this.system.showGrid) {
+                    this.drawTransformedGrid(p);
+                }
+                
+                // 绘制坐标轴
+                this.drawAxes(p);
+                
+                // 根据动画状态选择要绘制的数据
+                let vectorsToDraw, squareToDraw;
+                
+                if (this.system.state === VisualizationState.ANIMATING) {
+                    vectorsToDraw = this.system.getAnimatedVectors();
+                    squareToDraw = this.system.getAnimatedUnitSquare();
+                } else {
+                    vectorsToDraw = this.system.transformedVectors;
+                    squareToDraw = this.system.transformUnitSquare();
+                }
+                
+                // 绘制变换后的图形
+                this.drawTransformedSquare(p, squareToDraw);
+                this.drawTransformedVectors(p, vectorsToDraw);
+                
+                // 显示行列式信息
+                this.drawDeterminantInfo(p);
+            }
+
+            /**
+             * 绘制网格
+             * @param {p5} p - p5.js实例
+             */
+            drawGrid(p) {
+                p.stroke(...VISUAL_CONFIG.GRID_COLOR);
+                p.strokeWeight(1);
+                
+                const halfWidth = VISUAL_CONFIG.CANVAS_WIDTH / 2;
+                const halfHeight = VISUAL_CONFIG.CANVAS_HEIGHT / 2;
+                const gridSize = VISUAL_CONFIG.GRID_SIZE;
+                
+                for (let x = -halfWidth; x <= halfWidth; x += gridSize) {
+                    p.line(x, -halfHeight, x, halfHeight);
+                }
+                for (let y = -halfHeight; y <= halfHeight; y += gridSize) {
+                    p.line(-halfWidth, y, halfWidth, y);
+                }
+            }
+
+            /**
+             * 绘制变换后的网格
+             * @param {p5} p - p5.js实例
+             */
+            drawTransformedGrid(p) {
+                p.stroke(...VISUAL_CONFIG.GRID_COLOR);
+                p.strokeWeight(1);
+                
+                const halfWidth = VISUAL_CONFIG.CANVAS_WIDTH / 2;
+                const halfHeight = VISUAL_CONFIG.CANVAS_HEIGHT / 2;
+                const gridSize = VISUAL_CONFIG.GRID_SIZE;
+                
+                // 绘制变换后的网格线
+                for (let x = -halfWidth; x <= halfWidth; x += gridSize) {
+                    const start = this.system.matrix.multiplyVector(new Vector2D(x, -halfHeight));
+                    const end = this.system.matrix.multiplyVector(new Vector2D(x, halfHeight));
+                    p.line(start.x * gridSize, start.y * gridSize, end.x * gridSize, end.y * gridSize);
+                }
+                
+                for (let y = -halfHeight; y <= halfHeight; y += gridSize) {
+                    const start = this.system.matrix.multiplyVector(new Vector2D(-halfWidth, y));
+                    const end = this.system.matrix.multiplyVector(new Vector2D(halfWidth, y));
+                    p.line(start.x * gridSize, start.y * gridSize, end.x * gridSize, end.y * gridSize);
+                }
+            }
+
+            /**
+             * 绘制坐标轴
+             * @param {p5} p - p5.js实例
+             */
+            drawAxes(p) {
+                p.stroke(0);
+                p.strokeWeight(2);
+                
+                const halfWidth = VISUAL_CONFIG.CANVAS_WIDTH / 2;
+                const halfHeight = VISUAL_CONFIG.CANVAS_HEIGHT / 2;
+                
+                // x轴
+                p.line(-halfWidth, 0, halfWidth, 0);
+                // y轴
+                p.line(0, -halfHeight, 0, halfHeight);
+                
+                // 坐标轴箭头
+                this.drawArrow(p, halfWidth - 10, 0, halfWidth, 0);
+                this.drawArrow(p, 0, halfHeight - 10, 0, halfHeight);
+                
+                // 坐标轴标签
+                p.push();
+                p.scale(1, -1);
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.LEFT, p.TOP);
+                p.text("x", halfWidth - 15, 5);
+                p.text("y", 5, -halfHeight + 15);
+                p.pop();
+            }
+
+            /**
+             * 绘制箭头
+             * @param {p5} p - p5.js实例
+             */
+            drawArrow(p, x1, y1, x2, y2) {
+                p.line(x1, y1, x2, y2);
+                
+                const angle = p.atan2(y2 - y1, x2 - x1);
+                const arrowSize = 8;
+                
+                p.push();
+                p.translate(x2, y2);
+                p.rotate(angle);
+                p.line(0, 0, -arrowSize, arrowSize / 2);
+                p.line(0, 0, -arrowSize, -arrowSize / 2);
+                p.pop();
+            }
+
+            /**
+             * 绘制单位正方形
+             * @param {p5} p - p5.js实例
+             */
+            drawUnitSquare(p) {
+                const scale = VISUAL_CONFIG.GRID_SIZE;
+                const vertices = this.system.unitSquare.map(v => 
+                    new Vector2D(v.x * scale, v.y * scale)
+                );
+                
+                p.fill(...VISUAL_CONFIG.UNIT_SQUARE_COLOR);
+                p.stroke(30, 144, 255);
+                p.strokeWeight(2);
+                
+                p.beginShape();
+                vertices.forEach(v => p.vertex(v.x, v.y));
+                p.endShape(p.CLOSE);
+                
+                // 标注顶点
+                p.fill(30, 144, 255);
+                p.noStroke();
+                p.textAlign(p.CENTER, p.CENTER);
+                vertices.forEach((v, i) => {
+                    p.push();
+                    p.scale(1, -1);
+                    p.text(`P${i}`, v.x, -v.y - 10);
+                    p.pop();
+                });
+            }
+
+            /**
+             * 绘制基向量
+             * @param {p5} p - p5.js实例
+             */
+            drawBaseVectors(p) {
+                const scale = VISUAL_CONFIG.GRID_SIZE;
+                
+                this.system.baseVectors.forEach((vector, index) => {
+                    const color = VISUAL_CONFIG.VECTOR_COLORS[index];
+                    const scaledVector = vector.multiply(scale);
+                    
+                    p.stroke(...color);
+                    p.strokeWeight(3);
+                    this.drawVector(p, new Vector2D(0, 0), scaledVector);
+                    
+                    // 向量标签
+                    p.fill(...color);
+                    p.noStroke();
+                    p.textAlign(p.CENTER, p.CENTER);
+                    p.push();
+                    p.scale(1, -1);
+                    p.text(`e${index + 1}`, scaledVector.x / 2, -scaledVector.y / 2 - 15);
+                    p.pop();
+                });
+            }
+
+            /**
+             * 绘制变换后的平行四边形
+             * @param {p5} p - p5.js实例
+             * @param {Vector2D[]} vertices - 顶点数组
+             */
+            drawTransformedSquare(p, vertices) {
+                const scale = VISUAL_CONFIG.GRID_SIZE;
+                const scaledVertices = vertices.map(v => v.multiply(scale));
+                
+                // 根据行列式符号选择颜色
+                const det = this.system.matrix.determinant();
+                if (det >= 0) {
+                    p.fill(...VISUAL_CONFIG.TRANSFORMED_COLOR);
+                } else {
+                    p.fill(255, 165, 0, 150); // 橙色表示负定向
+                }
+                
+                p.stroke(det >= 0 ? 220 : 255, det >= 0 ? 20 : 165, det >= 0 ? 60 : 0);
+                p.strokeWeight(2);
+                
+                p.beginShape();
+                scaledVertices.forEach(v => p.vertex(v.x, v.y));
+                p.endShape(p.CLOSE);
+                
+                // 计算并显示面积
+                const area = Math.abs(
+                    scaledVertices[0].cross(scaledVertices[1])
+                ) / (scale * scale);
+                
+                const center = scaledVertices.reduce((sum, v) => sum.add(v), new Vector2D(0, 0))
+                    .multiply(1 / scaledVertices.length);
+                
+                p.fill(0);
+                p.noStroke();
+                p.push();
+                p.scale(1, -1);
+                p.text(`面积 = ${area.toFixed(2)}`, center.x, -center.y);
+                p.pop();
+            }
+
+            /**
+             * 绘制变换后的向量
+             * @param {p5} p - p5.js实例
+             * @param {Vector2D[]} vectors - 向量数组
+             */
+            drawTransformedVectors(p, vectors) {
+                const scale = VISUAL_CONFIG.GRID_SIZE;
+                
+                vectors.forEach((vector, index) => {
+                    const color = VISUAL_CONFIG.VECTOR_COLORS[index];
+                    const scaledVector = vector.multiply(scale);
+                    
+                    p.stroke(...color);
+                    p.strokeWeight(3);
+                    this.drawVector(p, new Vector2D(0, 0), scaledVector);
+                    
+                    // 向量标签
+                    p.fill(...color);
+                    p.noStroke();
+                    p.push();
+                    p.scale(1, -1);
+                    p.text(`v${index + 1}`, scaledVector.x / 2, -scaledVector.y / 2 - 15);
+                    p.pop();
+                });
+            }
+
+            /**
+             * 绘制向量
+             * @param {p5} p - p5.js实例
+             */
+            drawVector(p, start, end) {
+                p.line(start.x, start.y, end.x, end.y);
+                this.drawArrow(p, start.x, start.y, end.x, end.y);
+            }
+
+            /**
+             * 显示行列式信息
+             * @param {p5} p - p5.js实例
+             */
+            drawDeterminantInfo(p) {
+                const det = this.system.matrix.determinant();
+                const area = this.system.calculateTransformedArea();
+                
+                p.push();
+                p.scale(1, -1);
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.LEFT, p.TOP);
+                p.textSize(14);
+                
+                const infoY = -VISUAL_CONFIG.CANVAS_HEIGHT / 2 + 20;
+                p.text(`行列式 det(A) = ${det.toFixed(3)}`, 20, infoY);
+                p.text(`面积缩放 = ${area.toFixed(3)}`, 20, infoY + 20);
+                p.text(`定向: ${det >= 0 ? '保持' : '反转'}`, 20, infoY + 40);
+                
+                if (Math.abs(det) < 1e-10) {
+                    p.text(`状态: 奇异矩阵(不可逆)`, 20, infoY + 60);
+                } else {
+                    p.text(`状态: 可逆矩阵`, 20, infoY + 60);
+                }
+                
+                p.pop();
+            }
+
+            /**
+             * 更新显示的行列式信息
+             */
+            updateDeterminantInfo() {
+                const det = this.system.matrix.determinant();
+                const area = this.system.calculateTransformedArea();
+                const orientation = det >= 0 ? '保持' : '反转';
+                const status = Math.abs(det) < 1e-10 ? '奇异矩阵(不可逆)' : '可逆矩阵';
+                
+                const infoText = `det(A) = ${det.toFixed(3)} | 面积缩放: ${area.toFixed(3)} | 定向: ${orientation} | 状态: ${status}`;
+                document.getElementById('determinantInfo').textContent = infoText;
+            }
+        }
+
+        // =============================================
+        // 模块四: 全局实例与初始化
+        // =============================================
+
+        /** 全局可视化渲染器实例 */
+        let determinantVisualizer;
+
+        // =============================================
+        // 模块五: p5.js 画布管理
+        // =============================================
+
+        /**
+         * 原始空间画布的p5.js实例
+         */
+        let originalSpaceSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(400, 400);
+                canvas.parent('original-space');
+                p.noLoop(); // 原始空间不需要动画循环
+            };
+
+            p.draw = function() {
+                if (determinantVisualizer) {
+                    determinantVisualizer.drawOriginalSpace(p);
+                }
+            };
+        };
+
+        /**
+         * 变换空间画布的p5.js实例
+         */
+        let transformedSpaceSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(400, 400);
+                canvas.parent('transformed-space');
+            };
+
+            p.draw = function() {
+                if (determinantVisualizer) {
+                    determinantVisualizer.drawTransformedSpace(p);
+                }
+            };
+        };
+
+        // =============================================
+        // 模块六: 初始化函数
+        // =============================================
+
+        /**
+         * 页面加载初始化
+         */
+        function initializePage() {
+            determinantVisualizer = new DeterminantRenderer();
+            
+            // 创建p5.js实例
+            new p5(originalSpaceSketch);
+            new p5(transformedSpaceSketch);
+            
+            // 初始化显示
+            updateMatrixInputs();
+            determinantVisualizer.updateDeterminantInfo();
+            
+            // 手动触发一次绘制
+            setTimeout(() => {
+                // 强制重绘画布
+                let p5Instances = document.querySelectorAll('canvas').length;
+                if (p5Instances > 0) {
+                    // 画布已创建，无需额外操作
+                }
+            }, 100);
+        }
+
+        // =============================================
+        // 模块七: 用户界面控制函数
+        // =============================================
+
+        /**
+         * 切换标签页
+         * @param {string} tabName - 标签页名称
+         */
+        function switchTab(tabName) {
+            // 更新标签激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // 更新可视化标签页
+            if (determinantVisualizer) {
+                determinantVisualizer.system.currentTab = tabName;
+            }
+            
+            // 更新说明显示
+            document.querySelectorAll('.explanation > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.getElementById(tabName + 'Explanation').style.display = 'block';
+        }
+
+        /**
+         * 更新矩阵参数
+         */
+        function updateMatrix() {
+            if (!determinantVisualizer) return;
+            
+            const a11 = parseFloat(document.getElementById('a11').value);
+            const a12 = parseFloat(document.getElementById('a12').value);
+            const a21 = parseFloat(document.getElementById('a21').value);
+            const a22 = parseFloat(document.getElementById('a22').value);
+            
+            determinantVisualizer.system.updateMatrix(a11, a12, a21, a22);
+            determinantVisualizer.updateDeterminantInfo();
+        }
+
+        /**
+         * 更新矩阵缩放
+         */
+        function updateMatrixScale() {
+            const scale = parseFloat(document.getElementById('matrixScale').value);
+            document.getElementById('matrixScaleValue').textContent = scale.toFixed(2);
+            
+            // 这里可以添加矩阵缩放逻辑
+        }
+
+        /**
+         * 应用预设变换
+         */
+        function applyPreset() {
+            if (!determinantVisualizer) return;
+            
+            const preset = document.getElementById('presetTransform').value;
+            determinantVisualizer.system.applyPreset(preset);
+            determinantVisualizer.updateDeterminantInfo();
+            
+            // 更新矩阵输入框显示
+            updateMatrixInputs();
+        }
+
+        /**
+         * 更新矩阵输入框显示
+         */
+        function updateMatrixInputs() {
+            if (!determinantVisualizer) return;
+            
+            const matrix = determinantVisualizer.system.matrix;
+            document.getElementById('a11').value = matrix.a11;
+            document.getElementById('a12').value = matrix.a12;
+            document.getElementById('a21').value = matrix.a21;
+            document.getElementById('a22').value = matrix.a22;
+        }
+
+        /**
+         * 更新旋转角度
+         */
+        function updateRotation() {
+            const degrees = parseInt(document.getElementById('rotation').value);
+            document.getElementById('rotationValue').textContent = degrees;
+            
+            if (determinantVisualizer) {
+                determinantVisualizer.system.setRotation(degrees);
+                determinantVisualizer.updateDeterminantInfo();
+                updateMatrixInputs();
+            }
+        }
+
+        /**
+         * 更新缩放因子
+         */
+        function updateScale() {
+            const scale = parseFloat(document.getElementById('scale').value);
+            document.getElementById('scaleValue').textContent = scale.toFixed(2);
+            
+            if (determinantVisualizer) {
+                determinantVisualizer.system.setScale(scale);
+                determinantVisualizer.updateDeterminantInfo();
+                updateMatrixInputs();
+            }
+        }
+
+        /**
+         * 播放变换动画
+         */
+        function animateTransformation() {
+            if (determinantVisualizer) {
+                determinantVisualizer.system.startAnimation();
+            }
+        }
+
+        /**
+         * 重置变换
+         */
+        function resetTransformation() {
+            if (determinantVisualizer) {
+                determinantVisualizer.system.updateMatrix(1, 0, 0, 1);
+                determinantVisualizer.updateDeterminantInfo();
+                updateMatrixInputs();
+            }
+        }
+
+        /**
+         * 切换网格显示
+         */
+        function toggleGrid() {
+            if (determinantVisualizer) {
+                determinantVisualizer.system.showGrid = !determinantVisualizer.system.showGrid;
+            }
+        }
+
+        /**
+         * 导出当前状态
+         */
+        function exportState() {
+            if (!determinantVisualizer) return;
+            
+            const state = {
+                matrix: determinantVisualizer.system.matrix,
+                determinant: determinantVisualizer.system.matrix.determinant(),
+                timestamp: new Date().toISOString()
+            };
+            
+            console.log('导出状态:', state);
+            alert('状态已导出到控制台，行列式值: ' + state.determinant.toFixed(3));
+        }
+
+        // =============================================
+        // 模块八: 工具函数
+        // =============================================
+
+        /**
+         * 格式化数值显示
+         * @param {number} value - 要格式化的数值
+         * @param {number} decimals - 小数位数
+         * @returns {string} 格式化后的字符串
+         */
+        function formatNumber(value, decimals = 3) {
+            return value.toFixed(decimals);
+        }
+
+        /**
+         * 限制数值范围
+         * @param {number} value - 输入值
+         * @param {number} min - 最小值
+         * @param {number} max - 最大值
+         * @returns {number} 限制后的值
+         */
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>
