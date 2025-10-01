@@ -564,7 +564,7 @@
                     <li>右奇异向量表示单位圆上映射到椭圆轴的向量方向</li>
                 </ul>
                 
-                <p><strong>几何解释的步骤：</strong></p>
+                <p><strong>几何解释步骤：</strong></p>
                 <ol>
                     <li>单位圆上的点首先通过V<sup>T</sup>旋转</li>
                     <li>然后通过Σ沿坐标轴缩放，形成椭圆</li>
@@ -635,7 +635,7 @@
     <!-- SVD可视化项目 -->
     <script>
         // =============================================================================
-        // 奇异值分解(SVD)的可视化
+        // 奇异值分解(SVD)可视化
         // 作者: MathScape
         // 描述: 奇异值分解的几何解释与可视化
         // =============================================================================
@@ -948,7 +948,7 @@
         }
 
         // =============================================
-        // 模块四: 可视化系统类
+        // 模块四: 可视化系统类 
         // =============================================
 
         /** SVD可视化系统 */
@@ -1160,7 +1160,7 @@
             }
         }
 
-        /** SVD可视化渲染器 */
+        /** SVD可视化渲染器  */
         class SVDRenderer {
             constructor() {
                 this.system = new SVDVisualization();
@@ -1314,12 +1314,13 @@
                 points.forEach(point => p.vertex(point.x, point.y));
                 p.endShape(p.CLOSE);
                 
-                // 标注
+                // 标注 - 修复位置问题
                 p.fill(30, 144, 255);
                 p.noStroke();
                 p.push();
                 p.scale(1, -1);
-                p.text("单位圆", -30, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 30);
+                p.textAlign(p.CENTER, p.BOTTOM);
+                p.text("单位圆", 0, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 40);
                 p.pop();
             }
 
@@ -1342,12 +1343,13 @@
                 points.forEach(point => p.vertex(point.x, point.y));
                 p.endShape(p.CLOSE);
                 
-                // 标注
+                // 标注 - 修复位置问题
                 p.fill(220, 20, 60);
                 p.noStroke();
                 p.push();
                 p.scale(1, -1);
-                p.text("变换后的椭圆", 30, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 30);
+                p.textAlign(p.CENTER, p.BOTTOM);
+                p.text("变换后的椭圆", 0, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 70);
                 p.pop();
             }
 
@@ -1374,14 +1376,15 @@
                 this.drawVector(p, new Vector2D(0, 0), 
                     new Vector2D(svd.U.a12, svd.U.a22).multiply(scale * svd.S[1]));
                 
-                // 向量标签
+                // 向量标签 - 修复位置问题
                 p.fill(30, 144, 255);
                 p.noStroke();
                 p.push();
                 p.scale(1, -1);
-                p.text("右奇异向量", -80, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 60);
+                p.textAlign(p.LEFT, p.TOP);
+                p.text("右奇异向量", -VISUAL_CONFIG.CANVAS_WIDTH/2 + 20, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 100);
                 p.fill(255, 140, 0);
-                p.text("左奇异向量", 50, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 60);
+                p.text("左奇异向量", -VISUAL_CONFIG.CANVAS_WIDTH/2 + 20, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 120);
                 p.pop();
             }
 
@@ -1402,15 +1405,21 @@
                 const scale = VISUAL_CONFIG.GRID_SIZE;
                 const steps = this.system.getDecompositionSteps();
                 
-                // 绘制四个步骤
-                this.drawStep(p, steps.step1, scale, VISUAL_CONFIG.STEP_COLORS[0], "1. 单位圆");
-                this.drawStep(p, steps.step2, scale, VISUAL_CONFIG.STEP_COLORS[1], "2. V^T 旋转");
-                this.drawStep(p, steps.step3, scale, VISUAL_CONFIG.STEP_COLORS[2], "3. Σ 缩放");
+                // 绘制四个步骤 - 修复文字重叠
+                const labelPositions = [
+                    { x: -100, y: -150 }, // 步骤1位置
+                    { x: 100, y: -150 },  // 步骤2位置
+                    { x: -100, y: 150 },  // 步骤3位置
+                    { x: 100, y: 150 }    // 步骤4位置
+                ];
+                
+                this.drawStep(p, steps.step1, scale, VISUAL_CONFIG.STEP_COLORS[0], "1. 单位圆", labelPositions[0]);
+                this.drawStep(p, steps.step2, scale, VISUAL_CONFIG.STEP_COLORS[1], "2. V^T 旋转", labelPositions[1]);
+                this.drawStep(p, steps.step3, scale, VISUAL_CONFIG.STEP_COLORS[2], "3. Σ 缩放", labelPositions[2]);
                 
                 // 第四步稍微偏移以区分
-                const offset = new Vector2D(80, 0);
-                const step4Points = steps.step4.map(point => point.add(offset));
-                this.drawStep(p, step4Points, scale, VISUAL_CONFIG.ELLIPSE_COLOR, "4. U 旋转 → 椭圆");
+                const step4Points = steps.step4.map(point => point.multiply(0.8)); // 缩小以避免重叠
+                this.drawStep(p, step4Points, scale, VISUAL_CONFIG.ELLIPSE_COLOR, "4. U 旋转 → 椭圆", labelPositions[3]);
             }
 
             /**
@@ -1422,9 +1431,15 @@
                 const steps = this.system.getAnimatedPoints();
                 
                 // 绘制前三个步骤（半透明）
-                this.drawStep(p, steps.step1, scale, [...VISUAL_CONFIG.STEP_COLORS[0], 50], "1. 单位圆");
-                this.drawStep(p, steps.step2, scale, [...VISUAL_CONFIG.STEP_COLORS[1], 50], "2. V^T 旋转");
-                this.drawStep(p, steps.step3, scale, [...VISUAL_CONFIG.STEP_COLORS[2], 50], "3. Σ 缩放");
+                const labelPositions = [
+                    { x: -100, y: -150 }, // 步骤1位置
+                    { x: 100, y: -150 },  // 步骤2位置
+                    { x: -100, y: 150 }   // 步骤3位置
+                ];
+                
+                this.drawStep(p, steps.step1, scale, [...VISUAL_CONFIG.STEP_COLORS[0], 50], "1. 单位圆", labelPositions[0]);
+                this.drawStep(p, steps.step2, scale, [...VISUAL_CONFIG.STEP_COLORS[1], 50], "2. V^T 旋转", labelPositions[1]);
+                this.drawStep(p, steps.step3, scale, [...VISUAL_CONFIG.STEP_COLORS[2], 50], "3. Σ 缩放", labelPositions[2]);
                 
                 // 绘制当前动画步骤
                 p.fill(...VISUAL_CONFIG.ELLIPSE_COLOR);
@@ -1437,7 +1452,7 @@
                 );
                 p.endShape(p.CLOSE);
                 
-                // 标注当前步骤
+                // 标注当前步骤 - 修复位置问题
                 let stepLabel = "";
                 if (this.system.animationProgress < 0.33) {
                     stepLabel = "步骤 1 → 2: V^T 旋转";
@@ -1451,15 +1466,16 @@
                 p.noStroke();
                 p.push();
                 p.scale(1, -1);
-                p.text(stepLabel, -60, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 30);
+                p.textAlign(p.CENTER, p.TOP);
+                p.text(stepLabel, 0, VISUAL_CONFIG.CANVAS_HEIGHT/2 - 40);
                 p.pop();
             }
 
             /**
-             * 绘制分解步骤
+             * 绘制分解步骤 - 修复文字定位
              * @param {p5} p - p5.js实例
              */
-            drawStep(p, points, scale, color, label) {
+            drawStep(p, points, scale, color, label, labelPos) {
                 const scaledPoints = points.map(point => point.multiply(scale));
                 
                 p.fill(...color);
@@ -1470,17 +1486,18 @@
                 scaledPoints.forEach(point => p.vertex(point.x, point.y));
                 p.endShape(p.CLOSE);
                 
-                // 步骤标签
+                // 步骤标签 - 修复位置问题
                 p.fill(color[0], color[1], color[2]);
                 p.noStroke();
                 p.push();
                 p.scale(1, -1);
-                p.text(label, -40, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 30);
+                p.textAlign(p.CENTER, p.CENTER);
+                p.text(label, labelPos.x, labelPos.y);
                 p.pop();
             }
 
             /**
-             * 显示矩阵信息
+             * 显示矩阵信息 - 修复位置问题
              * @param {p5} p - p5.js实例
              */
             drawMatrixInfo(p) {
@@ -1490,17 +1507,17 @@
                 p.scale(1, -1);
                 p.fill(0);
                 p.noStroke();
-                p.textAlign(p.LEFT, p.TOP);
+                p.textAlign(p.RIGHT, p.TOP);
                 p.textSize(14);
                 
-                p.text(`矩阵 A = [${matrix.a11.toFixed(2)}, ${matrix.a12.toFixed(2)}]`, 20, 20);
-                p.text(`         [${matrix.a21.toFixed(2)}, ${matrix.a22.toFixed(2)}]`, 20, 40);
+                p.text(`矩阵 A = [${matrix.a11.toFixed(2)}, ${matrix.a12.toFixed(2)}]`, VISUAL_CONFIG.CANVAS_WIDTH/2 - 20, 20);
+                p.text(`         [${matrix.a21.toFixed(2)}, ${matrix.a22.toFixed(2)}]`, VISUAL_CONFIG.CANVAS_WIDTH/2 - 20, 40);
                 
                 p.pop();
             }
 
             /**
-             * 显示SVD信息
+             * 显示SVD信息 - 修复位置问题
              * @param {p5} p - p5.js实例
              */
             drawSVDInfo(p) {
@@ -1513,13 +1530,13 @@
                 p.textAlign(p.LEFT, p.TOP);
                 p.textSize(12);
                 
-                const infoY = -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 20;
-                p.text(`奇异值: σ₁ = ${svd.S[0].toFixed(3)}, σ₂ = ${svd.S[1].toFixed(3)}`, 20, infoY);
-                p.text(`条件数: ${(svd.S[0] / svd.S[1]).toFixed(3)}`, 20, infoY + 20);
+                const infoY = VISUAL_CONFIG.CANVAS_HEIGHT/2 - 80;
+                p.text(`奇异值: σ₁ = ${svd.S[0].toFixed(3)}, σ₂ = ${svd.S[1].toFixed(3)}`, -VISUAL_CONFIG.CANVAS_WIDTH/2 + 20, infoY);
+                p.text(`条件数: ${(svd.S[0] / svd.S[1]).toFixed(3)}`, -VISUAL_CONFIG.CANVAS_WIDTH/2 + 20, infoY + 20);
                 
                 // 验证SVD正确性
                 const isCorrect = SVDCalculator.verifySVD(this.system.matrix, svd);
-                p.text(`SVD验证: ${isCorrect ? "正确" : "错误"}`, 20, infoY + 40);
+                p.text(`SVD验证: ${isCorrect ? "正确" : "错误"}`, -VISUAL_CONFIG.CANVAS_WIDTH/2 + 20, infoY + 40);
                 
                 p.pop();
             }
