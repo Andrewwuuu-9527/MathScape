@@ -3,22 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>行列式的几何意义</title>
+    <title>线性变换 </title>
     <style>
-        /* === CSS 变量定义 - 确保主题一致性 === */
         :root {
             --primary-color: #3498db;
             --primary-dark: #2980b9;
             --secondary-color: #ecf0f1;
             --text-color: #2c3e50;
             --background-color: #f9f9f9;
-            --control-bg: #d6eaf8;
+            --control-bg: #e1f5fe;
             --header-gradient: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-            --area-positive: rgba(46, 204, 113, 0.3);
-            --area-negative: rgba(231, 76, 60, 0.3);
         }
 
-        /* === 基础样式重置 === */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -35,7 +31,6 @@
             line-height: 1.6;
         }
 
-        /* === 导航菜单样式 === */
         nav {
             background: #2c3e50;
             padding: 15px 0;
@@ -76,7 +71,6 @@
             box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
         }
 
-        /* === 页面头部样式 === */
         header {
             text-align: center;
             background: var(--header-gradient);
@@ -99,7 +93,6 @@
             font-weight: 300;
         }
 
-        /* === 可视化容器样式 === */
         .visualization-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -132,7 +125,6 @@
             border-radius: 10px 10px 0 0;
         }
 
-        /* === 控制面板样式 === */
         .controls {
             background: var(--control-bg);
             padding: 25px;
@@ -262,7 +254,6 @@
             outline: none;
         }
 
-        /* === 按钮样式 === */
         .button-group {
             display: flex;
             justify-content: center;
@@ -302,7 +293,6 @@
             background: #7f8c8d;
         }
 
-        /* === 说明区域样式 === */
         .explanation {
             background: white;
             padding: 30px;
@@ -343,14 +333,13 @@
         }
 
         .info-panel {
-            background: #e8f4fd;
+            background: #e1f5fe;
             border-left: 4px solid var(--primary-color);
             padding: 15px;
             margin: 15px 0;
             border-radius: 0 6px 6px 0;
         }
 
-        /* === 标签页样式 === */
         .tab-container {
             display: flex;
             justify-content: center;
@@ -380,7 +369,6 @@
             color: white;
         }
 
-        /* === 响应式设计 === */
         @media (max-width: 768px) {
             .control-grid {
                 grid-template-columns: 1fr;
@@ -411,9 +399,9 @@
     <nav>
         <div class="nav-container">
             <a href="index.html" class="nav-button">特征值与特征向量</a>
-            <a href="determinants.html" class="nav-button active">行列式几何</a>
+            <a href="determinants.html" class="nav-button">行列式几何</a>
             <a href="svd.html" class="nav-button">奇异值分解</a>
-            <a href="linear_transformations.html" class="nav-button">线性变换</a>
+            <a href="linear_transformations.html" class="nav-button active">线性变换</a>
             <a href="fourier.html" class="nav-button">傅里叶变换</a>
             <a href="gradient_descent.html" class="nav-button">梯度下降</a>
             <a href="probability.html" class="nav-button">概率分布</a>
@@ -422,16 +410,15 @@
     </nav>
 
     <header>
-        <h1>行列式的几何意义</h1>
-        <p class="subtitle">探索线性变换中的面积缩放与定向概念</p>
+        <h1>线性变换 <h1>
+        <p class="subtitle">探索矩阵变换对平面图形的几何影响</p>
     </header>
     
     <main>
         <div class="tab-container">
-            <button class="tab active" onclick="switchTab('areaScaling')">面积缩放</button>
-            <button class="tab" onclick="switchTab('orientation')">定向与符号</button>
-            <button class="tab" onclick="switchTab('volume')">高维体积</button>
-            <button class="tab" onclick="switchTab('applications')">应用实例</button>
+            <button class="tab active" onclick="switchTab('transformations')">基本变换</button>
+            <button class="tab" onclick="switchTab('composition')">变换复合</button>
+            <button class="tab" onclick="switchTab('eigen')">特征分析</button>
         </div>
         
         <div class="visualization-container">
@@ -446,7 +433,7 @@
         </div>
         
         <div class="controls">
-            <h3>矩阵参数控制</h3>
+            <h3>变换参数控制</h3>
             
             <div class="control-grid">
                 <div class="control-group">
@@ -455,28 +442,28 @@
                     <div class="matrix-controls">
                         <div class="matrix-input">
                             <label>a₁₁</label>
-                            <input type="number" id="a11" value="2" step="0.1" onchange="updateMatrix()">
+                            <input type="number" id="a11" value="1" step="0.1" onchange="updateMatrix()">
                         </div>
                         <div class="matrix-input">
                             <label>a₁₂</label>
-                            <input type="number" id="a12" value="1" step="0.1" onchange="updateMatrix()">
+                            <input type="number" id="a12" value="0" step="0.1" onchange="updateMatrix()">
                         </div>
                         <div class="matrix-input">
                             <label>a₂₁</label>
-                            <input type="number" id="a21" value="1" step="0.1" onchange="updateMatrix()">
+                            <input type="number" id="a21" value="0" step="0.1" onchange="updateMatrix()">
                         </div>
                         <div class="matrix-input">
                             <label>a₂₂</label>
-                            <input type="number" id="a22" value="2" step="0.1" onchange="updateMatrix()">
+                            <input type="number" id="a22" value="1" step="0.1" onchange="updateMatrix()">
                         </div>
                     </div>
                     
                     <div class="slider-container">
-                        <label>矩阵范数缩放: 
-                            <span class="slider-value" id="matrixScaleValue">1.00</span>
+                        <label>变换强度: 
+                            <span class="slider-value" id="transformStrengthValue">1.00</span>
                         </label>
-                        <input type="range" id="matrixScale" min="0.1" max="2.0" step="0.05" value="1.0" 
-                               onchange="updateMatrixScale()">
+                        <input type="range" id="transformStrength" min="0.1" max="2.0" step="0.05" value="1.0" 
+                               onchange="updateTransformStrength()">
                     </div>
                 </div>
                 
@@ -484,14 +471,14 @@
                     <h4>预设变换</h4>
                     
                     <div class="slider-container">
-                        <label>选择预设: 
+                        <label>选择变换类型: 
                             <select id="presetTransform" onchange="applyPreset()">
                                 <option value="identity">恒等变换</option>
-                                <option value="rotation">旋转</option>
-                                <option value="shear">剪切</option>
-                                <option value="scale">缩放</option>
-                                <option value="reflection">反射</option>
-                                <option value="singular">奇异矩阵</option>
+                                <option value="rotation">旋转变换</option>
+                                <option value="scaling">缩放变换</option>
+                                <option value="shear">剪切变换</option>
+                                <option value="reflection">反射变换</option>
+                                <option value="projection">投影变换</option>
                                 <option value="custom">自定义</option>
                             </select>
                         </label>
@@ -516,130 +503,111 @@
             </div>
             
             <div class="info-panel">
-                <strong>行列式信息:</strong>
-                <span id="determinantInfo">计算中...</span>
+                <strong>变换信息:</strong>
+                <span id="transformInfo">行列式: 1.00 | 特征值: 计算中...</span>
             </div>
             
             <div class="button-group">
-                <button onclick="animateTransformation()">播放动画</button>
-                <button onclick="resetTransformation()" class="secondary">重置</button>
+                <button onclick="animateTransformation()">播放变换动画</button>
+                <button onclick="resetVisualization()" class="secondary">重置</button>
                 <button onclick="toggleGrid()" class="secondary">切换网格</button>
-                <button onclick="exportState()" class="secondary">导出状态</button>
+                <button onclick="toggleVectors()" class="secondary">切换向量</button>
             </div>
         </div>
         
         <div class="explanation">
-            <div id="areaScalingExplanation">
-                <h3>行列式作为面积缩放因子</h3>
-                <p>对于2×2矩阵，行列式的绝对值表示线性变换对面积的缩放比例：</p>
+            <div id="transformationsExplanation">
+                <h3>线性变换的几何解释</h3>
+                <p>线性变换是线性代数中的核心概念，它描述了一个向量空间到另一个向量空间的映射，保持向量加法和标量乘法运算。</p>
                 
                 <div class="math-equation">
-                    A = [[a, b], [c, d]] &nbsp;&nbsp; ⇒ &nbsp;&nbsp; det(A) = ad - bc
+                    T: V → W, 满足 T(u+v) = T(u) + T(v) 且 T(cv) = cT(v)
                 </div>
+                
+                <p><strong>在二维平面中，线性变换可以表示为2×2矩阵：</strong></p>
+                <div class="math-equation">
+                    A = [a₁₁ a₁₂; a₂₁ a₂₂]
+                </div>
+                
+                <p><strong>常见的线性变换类型：</strong></p>
+                <ul>
+                    <li><strong>恒等变换</strong>：保持所有向量不变</li>
+                    <li><strong>旋转变换</strong>：绕原点旋转向量</li>
+                    <li><strong>缩放变换</strong>：沿坐标轴方向拉伸或压缩</li>
+                    <li><strong>剪切变换</strong>：使图形沿某一方向倾斜</li>
+                    <li><strong>反射变换</strong>：关于直线或点的镜像</li>
+                    <li><strong>投影变换</strong>：将向量投影到特定方向</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>几何性质：</strong> 线性变换将直线映射为直线，保持原点不变，并且平行线保持平行。
+                </div>
+            </div>
+            
+            <div id="compositionExplanation" style="display:none">
+                <h3>变换的复合与分解</h3>
+                <p>复杂的线性变换可以通过简单变换的复合来实现，这对应于矩阵的乘法运算。</p>
+                
+                <p><strong>变换复合：</strong></p>
+                <div class="math-equation">
+                    T₂ ∘ T₁(v) = T₂(T₁(v)) 对应矩阵乘法 B·A
+                </div>
+                
+                <p><strong>变换分解：</strong></p>
+                <p>任何可逆线性变换都可以分解为以下基本变换的组合：</p>
+                <ol>
+                    <li>旋转或反射</li>
+                    <li>沿坐标轴缩放</li>
+                    <li>另一个旋转或反射</li>
+                </ol>
+                
+                <p>这对应于矩阵的奇异值分解(SVD)：</p>
+                <div class="math-equation">
+                    A = U Σ V<sup>T</sup>
+                </div>
+                
+                <p>其中U和V是旋转/反射矩阵，Σ是缩放矩阵。</p>
+                
+                <div class="info-panel">
+                    <strong>应用：</strong> 变换的复合与分解在计算机图形学、机器学习和数据压缩中具有广泛的应用。
+                </div>
+            </div>
+            
+            <div id="eigenExplanation" style="display:none">
+                <h3>特征值与特征向量</h3>
+                <p>特征值和特征向量揭示了线性变换的内在结构：</p>
+                
+                <p><strong>定义：</strong></p>
+                <div class="math-equation">
+                    A v = λ v
+                </div>
+                
+                <p>其中v是特征向量，λ是对应的特征值。</p>
                 
                 <p><strong>几何解释：</strong></p>
                 <ul>
-                    <li>单位正方形的面积在变换后被缩放 |det(A)| 倍</li>
-                    <li>任意形状的面积都按相同比例缩放</li>
-                    <li>det(A) = 0 表示变换将空间压缩到低维（面积为零）</li>
-                    <li>|det(A)| > 1 表示放大，|det(A)| < 1 表示缩小</li>
+                    <li>特征向量是变换过程中方向不变的向量</li>
+                    <li>特征值表示特征向量在变换中的伸缩因子</li>
+                    <li>正特征值表示方向不变，负特征值表示方向反转</li>
                 </ul>
                 
-                <div class="info-panel">
-                    <strong>例子：</strong> 当 det(A) = 3 时，任何区域的面积都变为原来的3倍。
-                    当 det(A) = 0.5 时，面积减半。当 det(A) = 0 时，所有区域被压缩到直线或点上。
-                </div>
-            </div>
-            
-            <div id="orientationExplanation" style="display:none">
-                <h3>行列式的符号与定向</h3>
-                <p>行列式的符号包含了重要的几何信息：</p>
-                
+                <p><strong>特征分解：</strong></p>
                 <div class="math-equation">
-                    sign(det(A)) = 定向变化
+                    A = Q Λ Q<sup>-1</sup>
                 </div>
                 
-                <p><strong>定向概念：</strong></p>
+                <p>其中Q的列是特征向量，Λ是对角特征值矩阵。</p>
+                
+                <p><strong>应用：</strong></p>
                 <ul>
-                    <li><strong>正行列式</strong>：保持定向（右手系保持右手系）</li>
-                    <li><strong>负行列式</strong>：反转定向（右手系变为左手系）</li>
-                    <li><strong>零行列式</strong>：失去定向概念（降维）</li>
-                </ul>
-                
-                <p><strong>常见情况：</strong></p>
-                <ol>
-                    <li>旋转：det = +1（保持定向）</li>
-                    <li>反射：det = -1（反转定向）</li>
-                    <li>缩放：det = 缩放因子的乘积</li>
-                    <li>剪切：det = 1（面积不变但形状改变）</li>
-                </ol>
-                
-                <div class="info-panel">
-                    <strong>提示：</strong> 观察单位正方形的顶点顺序。正行列式保持顶点顺时针或逆时针顺序，
-                    负行列式会反转这个顺序。
-                </div>
-            </div>
-            
-            <div id="volumeExplanation" style="display:none">
-                <h3>高维推广：体积缩放</h3>
-                <p>在n维空间中，行列式表示线性变换对n维体积的缩放：</p>
-                
-                <div class="math-equation">
-                    n×n 矩阵 A 的行列式 det(A) 表示单位n维立方体体积的缩放
-                </div>
-                
-                <p><strong>性质：</strong></p>
-                <ul>
-                    <li>det(AB) = det(A)det(B) - 变换复合的体积缩放是乘积</li>
-                    <li>det(A⁻¹) = 1/det(A) - 逆变换反转缩放</li>
-                    <li>det(Aᵀ) = det(A) - 转置不改变体积缩放</li>
-                </ul>
-                
-                <p><strong>3维例子：</strong></p>
-                <ul>
-                    <li>对角矩阵 diag(2,3,4)：det = 24，体积放大24倍</li>
-                    <li>旋转矩阵：det = 1，体积不变</li>
-                    <li>投影矩阵：det = 0，体积为零</li>
+                    <li>主成分分析(PCA)</li>
+                    <li>振动分析</li>
+                    <li>马尔可夫链稳态分析</li>
+                    <li>图像处理和压缩</li>
                 </ul>
                 
                 <div class="info-panel">
-                    <strong>应用：</strong> 在多重积分中，Jacobian行列式就是坐标变换的体积缩放因子，
-                    用于积分变量的变换。
-                </div>
-            </div>
-            
-            <div id="applicationsExplanation" style="display:none">
-                <h3>行列式的应用</h3>
-                <p>行列式在数学和工程中具有广泛的应用：</p>
-                
-                <p><strong>1. 可逆性判定：</strong></p>
-                <ul>
-                    <li>det(A) ≠ 0 ⇔ A 可逆</li>
-                    <li>det(A) = 0 ⇔ A 奇异（不可逆）</li>
-                </ul>
-                
-                <p><strong>2. 特征值计算：</strong></p>
-                <ul>
-                    <li>特征多项式：det(A - λI) = 0</li>
-                    <li>行列式与特征值的关系：det(A) = λ₁λ₂⋯λₙ</li>
-                </ul>
-                
-                <p><strong>3. 线性方程组：</strong></p>
-                <ul>
-                    <li>Cramer法则：用行列式表示方程组的解</li>
-                    <li>解的唯一性：系数矩阵行列式非零时唯一解</li>
-                </ul>
-                
-                <p><strong>4. 几何应用：</strong></p>
-                <ul>
-                    <li>平行四边形面积 = |det([u, v])|，其中u,v是边向量</li>
-                    <li>平行六面体体积 = |det([u, v, w])|</li>
-                    <li>三角形面积 = ½|det([u, v])|</li>
-                </ul>
-                
-                <div class="info-panel">
-                    <strong>现实应用：</strong> 在计算机图形学中，变换矩阵的行列式用于计算纹理映射的缩放，
-                    在物理中用于坐标变换的体积元计算。
+                    <strong>提示：</strong> 观察变换后的单位圆，特征向量方向对应椭圆的长短轴方向，特征值对应轴的缩放比例。
                 </div>
             </div>
         </div>
@@ -648,12 +616,12 @@
     <!-- 引入p5.js库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
     
-    <!-- 行列式几何可视化 -->
+    <!-- 线性变换可视化 -->
     <script>
         // =============================================================================
-        // 行列式几何可视化
+        // 线性变换的可视化项目
         // 作者: MathScape
-        // 描述: 行列式作为面积缩放因子和定向指标的几何解释
+        // 描述: 线性变换的几何解释
         // =============================================================================
 
         // =============================================
@@ -669,20 +637,19 @@
 
         /** 标签页类型枚举 */
         const TabType = {
-            AREA_SCALING: 'areaScaling',
-            ORIENTATION: 'orientation',
-            VOLUME: 'volume',
-            APPLICATIONS: 'applications'
+            TRANSFORMATIONS: 'transformations',
+            COMPOSITION: 'composition',
+            EIGEN: 'eigen'
         };
 
         /** 预设变换类型枚举 */
         const PresetType = {
             IDENTITY: 'identity',
             ROTATION: 'rotation',
+            SCALING: 'scaling',
             SHEAR: 'shear',
-            SCALE: 'scale',
             REFLECTION: 'reflection',
-            SINGULAR: 'singular',
+            PROJECTION: 'projection',
             CUSTOM: 'custom'
         };
 
@@ -692,11 +659,13 @@
             CANVAS_HEIGHT: 400,
             ANIMATION_DURATION: 2000,    // 动画时长(ms)
             GRID_SIZE: 50,               // 网格大小
-            BASE_VECTORS: [[1, 0], [0, 1]], // 标准基向量
-            UNIT_SQUARE_COLOR: [65, 105, 225, 150],   // 单位正方形颜色
-            TRANSFORMED_COLOR: [220, 20, 60, 150],    // 变换后颜色
-            VECTOR_COLORS: [[30, 144, 255], [255, 140, 0]], // 向量颜色
-            GRID_COLOR: [200, 200, 200, 50]           // 网格颜色
+            UNIT_CIRCLE_POINTS: 100,     // 单位圆采样点数
+            UNIT_CIRCLE_COLOR: [65, 105, 225, 150],   // 单位圆颜色
+            TRANSFORMED_COLOR: [220, 20, 60, 150],    // 变换后图形颜色
+            BASIS_VECTOR_COLORS: [[30, 144, 255], [50, 205, 50]], // 基向量颜色
+            EIGENVECTOR_COLORS: [[255, 140, 0], [148, 0, 211]],   // 特征向量颜色
+            GRID_COLOR: [200, 200, 200, 50],          // 网格颜色
+            TEXT_COLOR: [0, 0, 0]                     // 文字颜色
         };
 
         // =============================================
@@ -710,76 +679,32 @@
                 this.y = y;
             }
 
-            /**
-             * 向量加法
-             * @param {Vector2D} other - 另一个向量
-             * @returns {Vector2D} 结果向量
-             */
             add(other) {
                 return new Vector2D(this.x + other.x, this.y + other.y);
             }
 
-            /**
-             * 向量数乘
-             * @param {number} scalar - 标量
-             * @returns {Vector2D} 结果向量
-             */
             multiply(scalar) {
                 return new Vector2D(this.x * scalar, this.y * scalar);
             }
 
-            /**
-             * 向量长度
-             * @returns {number} 向量模长
-             */
             magnitude() {
                 return Math.sqrt(this.x * this.x + this.y * this.y);
             }
 
-            /**
-             * 点积
-             * @param {Vector2D} other - 另一个向量
-             * @returns {number} 点积结果
-             */
+            normalize() {
+                const mag = this.magnitude();
+                if (mag === 0) return new Vector2D(0, 0);
+                return new Vector2D(this.x / mag, this.y / mag);
+            }
+
             dot(other) {
                 return this.x * other.x + this.y * other.y;
             }
 
-            /**
-             * 叉积 (2D向量的伪叉积，返回标量)
-             * @param {Vector2D} other - 另一个向量
-             * @returns {number} 叉积结果
-             */
-            cross(other) {
-                return this.x * other.y - this.y * other.x;
-            }
-
-            /**
-             * 向量旋转
-             * @param {number} angle - 旋转角度(弧度)
-             * @returns {Vector2D} 旋转后的向量
-             */
-            rotate(angle) {
-                const cos = Math.cos(angle);
-                const sin = Math.sin(angle);
-                return new Vector2D(
-                    this.x * cos - this.y * sin,
-                    this.x * sin + this.y * cos
-                );
-            }
-
-            /**
-             * 转换为数组
-             * @returns {number[]} [x, y]数组
-             */
             toArray() {
                 return [this.x, this.y];
             }
 
-            /**
-             * 克隆向量
-             * @returns {Vector2D} 新向量
-             */
             clone() {
                 return new Vector2D(this.x, this.y);
             }
@@ -794,11 +719,6 @@
                 this.a22 = a22;
             }
 
-            /**
-             * 矩阵与向量乘法
-             * @param {Vector2D} vector - 输入向量
-             * @returns {Vector2D} 变换后的向量
-             */
             multiplyVector(vector) {
                 return new Vector2D(
                     this.a11 * vector.x + this.a12 * vector.y,
@@ -806,11 +726,6 @@
                 );
             }
 
-            /**
-             * 矩阵与矩阵乘法
-             * @param {Matrix2x2} other - 另一个矩阵
-             * @returns {Matrix2x2} 乘积矩阵
-             */
             multiplyMatrix(other) {
                 return new Matrix2x2(
                     this.a11 * other.a11 + this.a12 * other.a21,
@@ -820,32 +735,6 @@
                 );
             }
 
-            /**
-             * 计算行列式
-             * @returns {number} 行列式值
-             */
-            determinant() {
-                return this.a11 * this.a22 - this.a12 * this.a21;
-            }
-
-            /**
-             * 计算逆矩阵
-             * @returns {Matrix2x2|null} 逆矩阵(如果存在)
-             */
-            inverse() {
-                const det = this.determinant();
-                if (Math.abs(det) < 1e-10) return null;
-                
-                return new Matrix2x2(
-                    this.a22 / det, -this.a12 / det,
-                    -this.a21 / det, this.a11 / det
-                );
-            }
-
-            /**
-             * 计算转置矩阵
-             * @returns {Matrix2x2} 转置矩阵
-             */
             transpose() {
                 return new Matrix2x2(
                     this.a11, this.a21,
@@ -853,166 +742,270 @@
                 );
             }
 
-            /**
-             * 获取特征值
-             * @returns {number[]} 特征值数组
-             */
-            eigenvalues() {
-                const trace = this.a11 + this.a22;
-                const det = this.determinant();
-                const discriminant = trace * trace - 4 * det;
-                
-                if (discriminant < 0) {
-                    // 复数特征值，返回实部和虚部
-                    const real = trace / 2;
-                    const imag = Math.sqrt(-discriminant) / 2;
-                    return [real, imag];
-                }
-                
-                const sqrtDisc = Math.sqrt(discriminant);
-                return [
-                    (trace + sqrtDisc) / 2,
-                    (trace - sqrtDisc) / 2
-                ];
+            determinant() {
+                return this.a11 * this.a22 - this.a12 * this.a21;
             }
 
-            /**
-             * 创建旋转矩阵
-             * @param {number} angle - 旋转角度(弧度)
-             * @returns {Matrix2x2} 旋转矩阵
-             */
+            trace() {
+                return this.a11 + this.a22;
+            }
+
             static rotation(angle) {
                 const cos = Math.cos(angle);
                 const sin = Math.sin(angle);
                 return new Matrix2x2(cos, -sin, sin, cos);
             }
 
-            /**
-             * 创建缩放矩阵
-             * @param {number} sx - x方向缩放
-             * @param {number} sy - y方向缩放
-             * @returns {Matrix2x2} 缩放矩阵
-             */
             static scaling(sx, sy) {
                 return new Matrix2x2(sx, 0, 0, sy);
             }
 
-            /**
-             * 创建剪切矩阵
-             * @param {number} kx - x方向剪切
-             * @param {number} ky - y方向剪切
-             * @returns {Matrix2x2} 剪切矩阵
-             */
             static shearing(kx, ky) {
                 return new Matrix2x2(1, kx, ky, 1);
             }
 
-            /**
-             * 创建反射矩阵
-             * @param {number} angle - 反射轴角度(弧度)
-             * @returns {Matrix2x2} 反射矩阵
-             */
             static reflection(angle) {
                 const cos = Math.cos(2 * angle);
                 const sin = Math.sin(2 * angle);
                 return new Matrix2x2(cos, sin, sin, -cos);
             }
+
+            static projection(angle) {
+                const cos = Math.cos(angle);
+                const sin = Math.sin(angle);
+                return new Matrix2x2(cos*cos, cos*sin, cos*sin, sin*sin);
+            }
+        }
+
+        /** 特征分析结果类 */
+        class EigenAnalysis {
+            constructor(eigenvalues, eigenvectors) {
+                this.eigenvalues = eigenvalues;  // 特征值 [λ1, λ2]
+                this.eigenvectors = eigenvectors; // 特征向量 [v1, v2]
+            }
+
+            /**
+             * 检查是否有实特征值
+             * @returns {boolean} 是否有实特征值
+             */
+            hasRealEigenvalues() {
+                return !this.eigenvalues.some(val => isNaN(val) || !isFinite(val));
+            }
         }
 
         // =============================================
-        // 模块三: 可视化系统类
+        // 模块三: 特征值计算算法
         // =============================================
 
-        /** 行列式可视化系统 */
-        class DeterminantVisualization {
+        /** 特征值计算器类 */
+        class EigenCalculator {
+            /**
+             * 计算2x2矩阵的特征值和特征向量
+             * @param {Matrix2x2} A - 输入矩阵
+             * @returns {EigenAnalysis} 特征分析结果
+             */
+            static computeEigen2x2(A) {
+                const a = A.a11, b = A.a12, c = A.a21, d = A.a22;
+                
+                // 计算特征值
+                const trace = a + d;
+                const det = a * d - b * c;
+                
+                const discriminant = trace * trace - 4 * det;
+                
+                let lambda1, lambda2;
+                let v1, v2;
+                
+                if (discriminant >= 0) {
+                    // 实特征值
+                    lambda1 = (trace + Math.sqrt(discriminant)) / 2;
+                    lambda2 = (trace - Math.sqrt(discriminant)) / 2;
+                    
+                    // 计算特征向量
+                    if (Math.abs(b) > 1e-10) {
+                        v1 = new Vector2D(lambda1 - d, c).normalize();
+                        v2 = new Vector2D(lambda2 - d, c).normalize();
+                    } else if (Math.abs(c) > 1e-10) {
+                        v1 = new Vector2D(b, lambda1 - a).normalize();
+                        v2 = new Vector2D(b, lambda2 - a).normalize();
+                    } else {
+                        // 对角矩阵
+                        v1 = new Vector2D(1, 0);
+                        v2 = new Vector2D(0, 1);
+                    }
+                } else {
+                    // 复特征值
+                    const realPart = trace / 2;
+                    const imagPart = Math.sqrt(-discriminant) / 2;
+                    lambda1 = { real: realPart, imag: imagPart };
+                    lambda2 = { real: realPart, imag: -imagPart };
+
+                    
+                    // 对于复特征值，不计算特征向量
+                    v1 = new Vector2D(NaN, NaN);
+                    v2 = new Vector2D(NaN, NaN);
+                }
+                
+                return new EigenAnalysis([lambda1, lambda2], [v1, v2]);
+            }
+        }
+
+        // =============================================
+        // 模块四: 可视化系统类
+        // =============================================
+
+        /** 线性变换可视化系统 */
+        class LinearTransformationVisualization {
             constructor() {
                 // 变换矩阵
-                this.matrix = new Matrix2x2(2, 1, 1, 2);
-                this.baseVectors = VISUAL_CONFIG.BASE_VECTORS.map(
-                    v => new Vector2D(v[0], v[1])
-                );
+                this.matrix = new Matrix2x2(1, 0, 0, 1);
                 
-                // 变换状态
-                this.transformedVectors = this.transformVectors();
+                // 特征分析结果
+                this.eigen = null;
+                this.computeEigen();
+                
+                // 动画状态
                 this.animationProgress = 0;
                 this.animationStartTime = 0;
                 this.state = VisualizationState.STATIC;
                 
                 // 显示设置
                 this.showGrid = true;
-                this.currentTab = TabType.AREA_SCALING;
+                this.showVectors = true;
+                this.currentTab = TabType.TRANSFORMATIONS;
                 
-                // 单位正方形顶点
-                this.unitSquare = [
-                    new Vector2D(0, 0),
-                    new Vector2D(1, 0),
-                    new Vector2D(1, 1),
-                    new Vector2D(0, 1)
-                ];
+                // 单位圆点集和网格点集
+                this.unitCirclePoints = this.generateUnitCircle();
+                this.gridPoints = this.generateGrid();
             }
 
             /**
-             * 变换基向量
-             * @returns {Vector2D[]} 变换后的向量
+             * 生成单位圆上的点
+             * @returns {Vector2D[]} 单位圆点集
              */
-            transformVectors() {
-                return this.baseVectors.map(v => this.matrix.multiplyVector(v));
-            }
-
-            /**
-             * 变换单位正方形
-             * @returns {Vector2D[]} 变换后的正方形顶点
-             */
-            transformUnitSquare() {
-                return this.unitSquare.map(v => this.matrix.multiplyVector(v));
-            }
-
-            /**
-             * 计算变换后的面积
-             * @returns {number} 面积
-             */
-            calculateTransformedArea() {
-                const v1 = this.transformedVectors[0];
-                const v2 = this.transformedVectors[1];
-                return Math.abs(v1.cross(v2));
-            }
-
-            /**
-             * 获取动画插值后的向量
-             * @returns {Vector2D[]} 动画中的向量
-             */
-            getAnimatedVectors() {
-                if (this.state !== VisualizationState.ANIMATING) {
-                    return this.transformedVectors;
+            generateUnitCircle() {
+                const points = [];
+                const numPoints = VISUAL_CONFIG.UNIT_CIRCLE_POINTS;
+                
+                for (let i = 0; i < numPoints; i++) {
+                    const angle = (2 * Math.PI * i) / numPoints;
+                    points.push(new Vector2D(Math.cos(angle), Math.sin(angle)));
                 }
                 
-                // 线性插值：从基向量到变换后的向量
-                return this.baseVectors.map((baseVector, index) => {
-                    const targetVector = this.transformedVectors[index];
-                    return new Vector2D(
-                        baseVector.x + (targetVector.x - baseVector.x) * this.animationProgress,
-                        baseVector.y + (targetVector.y - baseVector.y) * this.animationProgress
-                    );
-                });
+                return points;
             }
 
             /**
-             * 获取动画插值后的单位正方形
-             * @returns {Vector2D[]} 动画中的正方形顶点
+             * 生成网格点
+             * @returns {Object} 网格点集
              */
-            getAnimatedUnitSquare() {
-                if (this.state !== VisualizationState.ANIMATING) {
-                    return this.transformUnitSquare();
+            generateGrid() {
+                const gridSize = VISUAL_CONFIG.GRID_SIZE;
+                const points = [];
+                const lines = [];
+                
+                // 生成网格点
+                for (let x = -4; x <= 4; x++) {
+                    for (let y = -4; y <= 4; y++) {
+                        points.push(new Vector2D(x, y));
+                    }
                 }
                 
-                // 线性插值：从原始正方形到变换后的平行四边形
-                return this.unitSquare.map(vertex => {
-                    const targetVertex = this.matrix.multiplyVector(vertex);
-                    return new Vector2D(
-                        vertex.x + (targetVertex.x - vertex.x) * this.animationProgress,
-                        vertex.y + (targetVertex.y - vertex.y) * this.animationProgress
-                    );
-                });
+                // 生成网格线
+                for (let i = -4; i <= 4; i++) {
+                    // 垂直线
+                    lines.push({
+                        start: new Vector2D(i, -4),
+                        end: new Vector2D(i, 4)
+                    });
+                    // 水平线
+                    lines.push({
+                        start: new Vector2D(-4, i),
+                        end: new Vector2D(4, i)
+                    });
+                }
+                
+                return { points, lines };
+            }
+
+            /**
+             * 计算特征分析
+             */
+            computeEigen() {
+                this.eigen = EigenCalculator.computeEigen2x2(this.matrix);
+            }
+
+            /**
+             * 应用矩阵变换到点集
+             * @param {Vector2D[]} points - 输入点集
+             * @param {Matrix2x2} matrix - 变换矩阵
+             * @returns {Vector2D[]} 变换后的点集
+             */
+            transformPoints(points, matrix) {
+                return points.map(point => matrix.multiplyVector(point));
+            }
+
+            /**
+             * 应用预设变换
+             * @param {string} preset - 预设类型
+             */
+            applyPreset(preset) {
+                switch (preset) {
+                    case PresetType.IDENTITY:
+                        this.matrix = new Matrix2x2(1, 0, 0, 1);
+                        break;
+                    case PresetType.ROTATION:
+                        this.matrix = Matrix2x2.rotation(Math.PI / 4);
+                        break;
+                    case PresetType.SCALING:
+                        this.matrix = Matrix2x2.scaling(1.5, 0.8);
+                        break;
+                    case PresetType.SHEAR:
+                        this.matrix = Matrix2x2.shearing(0.5, 0);
+                        break;
+                    case PresetType.REFLECTION:
+                        this.matrix = Matrix2x2.reflection(Math.PI / 6);
+                        break;
+                    case PresetType.PROJECTION:
+                        this.matrix = Matrix2x2.projection(Math.PI / 4);
+                        break;
+                    case PresetType.CUSTOM:
+                        // 保持当前矩阵
+                        break;
+                }
+                
+                this.computeEigen();
+            }
+
+            /**
+             * 设置旋转矩阵
+             * @param {number} degrees - 旋转角度(度)
+             */
+            setRotation(degrees) {
+                const radians = degrees * Math.PI / 180;
+                this.matrix = Matrix2x2.rotation(radians);
+                this.computeEigen();
+            }
+
+            /**
+             * 设置缩放矩阵
+             * @param {number} scale - 缩放因子
+             */
+            setScale(scale) {
+                this.matrix = Matrix2x2.scaling(scale, scale);
+                this.computeEigen();
+            }
+
+            /**
+             * 更新矩阵元素
+             * @param {number} a11 - 元素11
+             * @param {number} a12 - 元素12
+             * @param {number} a21 - 元素21
+             * @param {number} a22 - 元素22
+             */
+            updateMatrix(a11, a12, a21, a22) {
+                this.matrix = new Matrix2x2(a11, a12, a21, a22);
+                this.computeEigen();
             }
 
             /**
@@ -1037,75 +1030,12 @@
                     this.state = VisualizationState.STATIC;
                 }
             }
-
-            /**
-             * 应用预设变换
-             * @param {string} preset - 预设类型
-             */
-            applyPreset(preset) {
-                switch (preset) {
-                    case PresetType.IDENTITY:
-                        this.matrix = new Matrix2x2(1, 0, 0, 1);
-                        break;
-                    case PresetType.ROTATION:
-                        this.matrix = Matrix2x2.rotation(Math.PI / 4);
-                        break;
-                    case PresetType.SHEAR:
-                        this.matrix = Matrix2x2.shearing(0.5, 0);
-                        break;
-                    case PresetType.SCALE:
-                        this.matrix = Matrix2x2.scaling(1.5, 0.8);
-                        break;
-                    case PresetType.REFLECTION:
-                        this.matrix = Matrix2x2.reflection(Math.PI / 6);
-                        break;
-                    case PresetType.SINGULAR:
-                        this.matrix = new Matrix2x2(1, 2, 2, 4); // 第二行是第一行的倍数
-                        break;
-                    case PresetType.CUSTOM:
-                        // 保持当前矩阵
-                        break;
-                }
-                
-                this.transformedVectors = this.transformVectors();
-            }
-
-            /**
-             * 设置旋转矩阵
-             * @param {number} degrees - 旋转角度(度)
-             */
-            setRotation(degrees) {
-                const radians = degrees * Math.PI / 180;
-                this.matrix = Matrix2x2.rotation(radians);
-                this.transformedVectors = this.transformVectors();
-            }
-
-            /**
-             * 设置缩放矩阵
-             * @param {number} scale - 缩放因子
-             */
-            setScale(scale) {
-                this.matrix = Matrix2x2.scaling(scale, scale);
-                this.transformedVectors = this.transformVectors();
-            }
-
-            /**
-             * 更新矩阵元素
-             * @param {number} a11 - 元素11
-             * @param {number} a12 - 元素12
-             * @param {number} a21 - 元素21
-             * @param {number} a22 - 元素22
-             */
-            updateMatrix(a11, a12, a21, a22) {
-                this.matrix = new Matrix2x2(a11, a12, a21, a22);
-                this.transformedVectors = this.transformVectors();
-            }
         }
 
-        /** 可视化渲染器 */
-        class DeterminantRenderer {
+        /** 线性变换可视化渲染器 */
+        class LinearTransformationRenderer {
             constructor() {
-                this.system = new DeterminantVisualization();
+                this.system = new LinearTransformationVisualization();
             }
 
             /**
@@ -1119,15 +1049,22 @@
                 
                 // 绘制网格
                 if (this.system.showGrid) {
-                    this.drawGrid(p);
+                    this.drawGrid(p, this.system.gridPoints);
                 }
                 
                 // 绘制坐标轴
                 this.drawAxes(p);
                 
-                // 绘制单位正方形和基向量
-                this.drawUnitSquare(p);
-                this.drawBaseVectors(p);
+                // 绘制单位圆
+                this.drawUnitCircle(p, this.system.unitCirclePoints);
+                
+                // 绘制基向量
+                if (this.system.showVectors) {
+                    this.drawBasisVectors(p);
+                }
+                
+                // 显示信息
+                this.drawOriginalInfo(p);
             }
 
             /**
@@ -1144,75 +1081,57 @@
                 
                 // 绘制网格
                 if (this.system.showGrid) {
-                    this.drawTransformedGrid(p);
+                    const transformedGrid = {
+                        points: this.system.transformPoints(this.system.gridPoints.points, this.system.matrix),
+                        lines: this.system.gridPoints.lines.map(line => ({
+                            start: this.system.matrix.multiplyVector(line.start),
+                            end: this.system.matrix.multiplyVector(line.end)
+                        }))
+                    };
+                    this.drawGrid(p, transformedGrid);
                 }
                 
                 // 绘制坐标轴
                 this.drawAxes(p);
                 
-                // 根据动画状态选择要绘制的数据
-                let vectorsToDraw, squareToDraw;
+                // 绘制变换后的单位圆
+                const transformedCircle = this.system.transformPoints(this.system.unitCirclePoints, this.system.matrix);
+                this.drawTransformedCircle(p, transformedCircle);
                 
-                if (this.system.state === VisualizationState.ANIMATING) {
-                    vectorsToDraw = this.system.getAnimatedVectors();
-                    squareToDraw = this.system.getAnimatedUnitSquare();
-                } else {
-                    vectorsToDraw = this.system.transformedVectors;
-                    squareToDraw = this.system.transformUnitSquare();
+                // 绘制变换后的基向量和特征向量
+                if (this.system.showVectors) {
+                    this.drawTransformedVectors(p);
                 }
                 
-                // 绘制变换后的图形
-                this.drawTransformedSquare(p, squareToDraw);
-                this.drawTransformedVectors(p, vectorsToDraw);
-                
-                // 显示行列式信息
-                this.drawDeterminantInfo(p);
+                // 显示变换信息
+                this.drawTransformedInfo(p);
             }
 
             /**
              * 绘制网格
              * @param {p5} p - p5.js实例
              */
-            drawGrid(p) {
+            drawGrid(p, grid) {
+                const scale = VISUAL_CONFIG.GRID_SIZE;
+                
+                // 绘制网格线
                 p.stroke(...VISUAL_CONFIG.GRID_COLOR);
                 p.strokeWeight(1);
                 
-                const halfWidth = VISUAL_CONFIG.CANVAS_WIDTH / 2;
-                const halfHeight = VISUAL_CONFIG.CANVAS_HEIGHT / 2;
-                const gridSize = VISUAL_CONFIG.GRID_SIZE;
+                grid.lines.forEach(line => {
+                    p.line(
+                        line.start.x * scale, line.start.y * scale,
+                        line.end.x * scale, line.end.y * scale
+                    );
+                });
                 
-                for (let x = -halfWidth; x <= halfWidth; x += gridSize) {
-                    p.line(x, -halfHeight, x, halfHeight);
-                }
-                for (let y = -halfHeight; y <= halfHeight; y += gridSize) {
-                    p.line(-halfWidth, y, halfWidth, y);
-                }
-            }
-
-            /**
-             * 绘制变换后的网格
-             * @param {p5} p - p5.js实例
-             */
-            drawTransformedGrid(p) {
-                p.stroke(...VISUAL_CONFIG.GRID_COLOR);
-                p.strokeWeight(1);
+                // 绘制网格点
+                p.fill(150);
+                p.noStroke();
                 
-                const halfWidth = VISUAL_CONFIG.CANVAS_WIDTH / 2;
-                const halfHeight = VISUAL_CONFIG.CANVAS_HEIGHT / 2;
-                const gridSize = VISUAL_CONFIG.GRID_SIZE;
-                
-                // 绘制变换后的网格线
-                for (let x = -halfWidth; x <= halfWidth; x += gridSize) {
-                    const start = this.system.matrix.multiplyVector(new Vector2D(x, -halfHeight));
-                    const end = this.system.matrix.multiplyVector(new Vector2D(x, halfHeight));
-                    p.line(start.x * gridSize, start.y * gridSize, end.x * gridSize, end.y * gridSize);
-                }
-                
-                for (let y = -halfHeight; y <= halfHeight; y += gridSize) {
-                    const start = this.system.matrix.multiplyVector(new Vector2D(-halfWidth, y));
-                    const end = this.system.matrix.multiplyVector(new Vector2D(halfWidth, y));
-                    p.line(start.x * gridSize, start.y * gridSize, end.x * gridSize, end.y * gridSize);
-                }
+                grid.points.forEach(point => {
+                    p.ellipse(point.x * scale, point.y * scale, 3, 3);
+                });
             }
 
             /**
@@ -1265,125 +1184,128 @@
             }
 
             /**
-             * 绘制单位正方形
+             * 绘制单位圆
              * @param {p5} p - p5.js实例
              */
-            drawUnitSquare(p) {
+            drawUnitCircle(p, points) {
                 const scale = VISUAL_CONFIG.GRID_SIZE;
-                const vertices = this.system.unitSquare.map(v => 
-                    new Vector2D(v.x * scale, v.y * scale)
-                );
+                const scaledPoints = points.map(point => point.multiply(scale));
                 
-                p.fill(...VISUAL_CONFIG.UNIT_SQUARE_COLOR);
+                p.fill(...VISUAL_CONFIG.UNIT_CIRCLE_COLOR);
                 p.stroke(30, 144, 255);
                 p.strokeWeight(2);
                 
                 p.beginShape();
-                vertices.forEach(v => p.vertex(v.x, v.y));
+                scaledPoints.forEach(point => p.vertex(point.x, point.y));
                 p.endShape(p.CLOSE);
+            }
+
+            /**
+             * 绘制变换后的圆
+             * @param {p5} p - p5.js实例
+             */
+            drawTransformedCircle(p, points) {
+                const scale = VISUAL_CONFIG.GRID_SIZE;
+                const scaledPoints = points.map(point => point.multiply(scale));
                 
-                // 标注顶点
-                p.fill(30, 144, 255);
-                p.noStroke();
-                p.textAlign(p.CENTER, p.CENTER);
-                vertices.forEach((v, i) => {
-                    p.push();
-                    p.scale(1, -1);
-                    p.text(`P${i}`, v.x, -v.y - 10);
-                    p.pop();
-                });
+                p.fill(...VISUAL_CONFIG.TRANSFORMED_COLOR);
+                p.stroke(220, 20, 60);
+                p.strokeWeight(2);
+                
+                p.beginShape();
+                scaledPoints.forEach(point => p.vertex(point.x, point.y));
+                p.endShape(p.CLOSE);
             }
 
             /**
              * 绘制基向量
              * @param {p5} p - p5.js实例
              */
-            drawBaseVectors(p) {
+            drawBasisVectors(p) {
                 const scale = VISUAL_CONFIG.GRID_SIZE;
                 
-                this.system.baseVectors.forEach((vector, index) => {
-                    const color = VISUAL_CONFIG.VECTOR_COLORS[index];
-                    const scaledVector = vector.multiply(scale);
-                    
-                    p.stroke(...color);
-                    p.strokeWeight(3);
-                    this.drawVector(p, new Vector2D(0, 0), scaledVector);
-                    
-                    // 向量标签
-                    p.fill(...color);
-                    p.noStroke();
-                    p.textAlign(p.CENTER, p.CENTER);
-                    p.push();
-                    p.scale(1, -1);
-                    p.text(`e${index + 1}`, scaledVector.x / 2, -scaledVector.y / 2 - 15);
-                    p.pop();
-                });
-            }
-
-            /**
-             * 绘制变换后的平行四边形
-             * @param {p5} p - p5.js实例
-             * @param {Vector2D[]} vertices - 顶点数组
-             */
-            drawTransformedSquare(p, vertices) {
-                const scale = VISUAL_CONFIG.GRID_SIZE;
-                const scaledVertices = vertices.map(v => v.multiply(scale));
+                // 标准基向量
+                const e1 = new Vector2D(1, 0);
+                const e2 = new Vector2D(0, 1);
                 
-                // 根据行列式符号选择颜色
-                const det = this.system.matrix.determinant();
-                if (det >= 0) {
-                    p.fill(...VISUAL_CONFIG.TRANSFORMED_COLOR);
-                } else {
-                    p.fill(255, 165, 0, 150); // 橙色表示负定向
-                }
+                p.stroke(...VISUAL_CONFIG.BASIS_VECTOR_COLORS[0]);
+                p.strokeWeight(3);
+                this.drawVector(p, new Vector2D(0, 0), e1.multiply(scale));
                 
-                p.stroke(det >= 0 ? 220 : 255, det >= 0 ? 20 : 165, det >= 0 ? 60 : 0);
-                p.strokeWeight(2);
+                p.stroke(...VISUAL_CONFIG.BASIS_VECTOR_COLORS[1]);
+                this.drawVector(p, new Vector2D(0, 0), e2.multiply(scale));
                 
-                p.beginShape();
-                scaledVertices.forEach(v => p.vertex(v.x, v.y));
-                p.endShape(p.CLOSE);
-                
-                // 计算并显示面积
-                const area = Math.abs(
-                    scaledVertices[0].cross(scaledVertices[1])
-                ) / (scale * scale);
-                
-                const center = scaledVertices.reduce((sum, v) => sum.add(v), new Vector2D(0, 0))
-                    .multiply(1 / scaledVertices.length);
-                
-                p.fill(0);
+                // 基向量标签
+                p.fill(...VISUAL_CONFIG.BASIS_VECTOR_COLORS[0]);
                 p.noStroke();
                 p.push();
                 p.scale(1, -1);
-                p.text(`面积 = ${area.toFixed(2)}`, center.x, -center.y);
+                p.text("e₁", scale - 10, 10);
+                p.fill(...VISUAL_CONFIG.BASIS_VECTOR_COLORS[1]);
+                p.text("e₂", 10, -scale + 10);
                 p.pop();
             }
 
             /**
              * 绘制变换后的向量
              * @param {p5} p - p5.js实例
-             * @param {Vector2D[]} vectors - 向量数组
              */
-            drawTransformedVectors(p, vectors) {
+            drawTransformedVectors(p) {
                 const scale = VISUAL_CONFIG.GRID_SIZE;
+                const matrix = this.system.matrix;
                 
-                vectors.forEach((vector, index) => {
-                    const color = VISUAL_CONFIG.VECTOR_COLORS[index];
-                    const scaledVector = vector.multiply(scale);
+                // 变换后的基向量
+                const te1 = matrix.multiplyVector(new Vector2D(1, 0));
+                const te2 = matrix.multiplyVector(new Vector2D(0, 1));
+                
+                p.stroke(...VISUAL_CONFIG.BASIS_VECTOR_COLORS[0]);
+                p.strokeWeight(3);
+                this.drawVector(p, new Vector2D(0, 0), te1.multiply(scale));
+                
+                p.stroke(...VISUAL_CONFIG.BASIS_VECTOR_COLORS[1]);
+                this.drawVector(p, new Vector2D(0, 0), te2.multiply(scale));
+                
+                // 变换后基向量标签
+                p.fill(...VISUAL_CONFIG.BASIS_VECTOR_COLORS[0]);
+                p.noStroke();
+                p.push();
+                p.scale(1, -1);
+                p.text("Ae₁", te1.x * scale - 10, te1.y * scale + 10);
+                p.fill(...VISUAL_CONFIG.BASIS_VECTOR_COLORS[1]);
+                p.text("Ae₂", te2.x * scale + 10, te2.y * scale + 10);
+                p.pop();
+                
+                // 绘制特征向量（如果存在）
+                if (this.system.eigen.hasRealEigenvalues()) {
+                    const [v1, v2] = this.system.eigen.eigenvectors;
+                    const [λ1, λ2] = this.system.eigen.eigenvalues;
                     
-                    p.stroke(...color);
-                    p.strokeWeight(3);
-                    this.drawVector(p, new Vector2D(0, 0), scaledVector);
+                    if (!isNaN(v1.x) && !isNaN(v1.y)) {
+                        p.stroke(...VISUAL_CONFIG.EIGENVECTOR_COLORS[0]);
+                        p.strokeWeight(3);
+                        this.drawVector(p, new Vector2D(0, 0), v1.multiply(scale * λ1));
+                        
+                        p.fill(...VISUAL_CONFIG.EIGENVECTOR_COLORS[0]);
+                        p.noStroke();
+                        p.push();
+                        p.scale(1, -1);
+                        p.text("v₁", v1.x * scale * λ1 - 10, v1.y * scale * λ1 + 10);
+                        p.pop();
+                    }
                     
-                    // 向量标签
-                    p.fill(...color);
-                    p.noStroke();
-                    p.push();
-                    p.scale(1, -1);
-                    p.text(`v${index + 1}`, scaledVector.x / 2, -scaledVector.y / 2 - 15);
-                    p.pop();
-                });
+                    if (!isNaN(v2.x) && !isNaN(v2.y)) {
+                        p.stroke(...VISUAL_CONFIG.EIGENVECTOR_COLORS[1]);
+                        p.strokeWeight(3);
+                        this.drawVector(p, new Vector2D(0, 0), v2.multiply(scale * λ2));
+                        
+                        p.fill(...VISUAL_CONFIG.EIGENVECTOR_COLORS[1]);
+                        p.noStroke();
+                        p.push();
+                        p.scale(1, -1);
+                        p.text("v₂", v2.x * scale * λ2 + 10, v2.y * scale * λ2 + 10);
+                        p.pop();
+                    }
+                }
             }
 
             /**
@@ -1396,13 +1318,10 @@
             }
 
             /**
-             * 显示行列式信息
+             * 显示原始空间信息
              * @param {p5} p - p5.js实例
              */
-            drawDeterminantInfo(p) {
-                const det = this.system.matrix.determinant();
-                const area = this.system.calculateTransformedArea();
-                
+            drawOriginalInfo(p) {
                 p.push();
                 p.scale(1, -1);
                 p.fill(0);
@@ -1410,43 +1329,72 @@
                 p.textAlign(p.LEFT, p.TOP);
                 p.textSize(14);
                 
-                const infoY = -VISUAL_CONFIG.CANVAS_HEIGHT / 2 + 20;
-                p.text(`行列式 det(A) = ${det.toFixed(3)}`, 20, infoY);
-                p.text(`面积缩放 = ${area.toFixed(3)}`, 20, infoY + 20);
-                p.text(`定向: ${det >= 0 ? '保持' : '反转'}`, 20, infoY + 40);
+                p.text("原始空间", 20, 20);
+                p.text("单位圆和标准基向量", 20, 40);
                 
-                if (Math.abs(det) < 1e-10) {
-                    p.text(`状态: 奇异矩阵(不可逆)`, 20, infoY + 60);
+                p.pop();
+            }
+
+            /**
+             * 显示变换后空间信息
+             * @param {p5} p - p5.js实例
+             */
+            drawTransformedInfo(p) {
+                const matrix = this.system.matrix;
+                const eigen = this.system.eigen;
+                
+                p.push();
+                p.scale(1, -1);
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.LEFT, p.TOP);
+                p.textSize(12);
+                
+                p.text("变换后空间", 20, 20);
+                p.text(`矩阵 A = [${matrix.a11.toFixed(2)}, ${matrix.a12.toFixed(2)}]`, 20, 40);
+                p.text(`         [${matrix.a21.toFixed(2)}, ${matrix.a22.toFixed(2)}]`, 20, 60);
+                
+                p.text(`行列式: ${matrix.determinant().toFixed(2)}`, 20, 90);
+                
+                if (eigen.hasRealEigenvalues()) {
+                    const [λ1, λ2] = eigen.eigenvalues;
+                    p.text(`特征值: λ₁ = ${λ1.toFixed(2)}, λ₂ = ${λ2.toFixed(2)}`, 20, 110);
                 } else {
-                    p.text(`状态: 可逆矩阵`, 20, infoY + 60);
+                    p.text("特征值: 复数", 20, 110);
                 }
                 
                 p.pop();
             }
 
             /**
-             * 更新显示的行列式信息
+             * 更新显示的变换信息
              */
-            updateDeterminantInfo() {
-                const det = this.system.matrix.determinant();
-                const area = this.system.calculateTransformedArea();
-                const orientation = det >= 0 ? '保持' : '反转';
-                const status = Math.abs(det) < 1e-10 ? '奇异矩阵(不可逆)' : '可逆矩阵';
+            updateTransformInfo() {
+                const matrix = this.system.matrix;
+                const eigen = this.system.eigen;
                 
-                const infoText = `det(A) = ${det.toFixed(3)} | 面积缩放: ${area.toFixed(3)} | 定向: ${orientation} | 状态: ${status}`;
-                document.getElementById('determinantInfo').textContent = infoText;
+                let eigenText;
+                if (eigen.hasRealEigenvalues()) {
+                    const [λ1, λ2] = eigen.eigenvalues;
+                    eigenText = `λ₁ = ${λ1.toFixed(2)}, λ₂ = ${λ2.toFixed(2)}`;
+                } else {
+                    eigenText = "复数";
+                }
+                
+                const infoText = `行列式: ${matrix.determinant().toFixed(2)} | 特征值: ${eigenText}`;
+                document.getElementById('transformInfo').textContent = infoText;
             }
         }
 
         // =============================================
-        // 模块四: 全局实例与初始化
+        // 模块五: 全局实例与初始化
         // =============================================
 
         /** 全局可视化渲染器实例 */
-        let determinantVisualizer;
+        let linearTransformVisualizer;
 
         // =============================================
-        // 模块五: p5.js 画布管理
+        // 模块六: p5.js 画布管理
         // =============================================
 
         /**
@@ -1456,18 +1404,17 @@
             p.setup = function() {
                 let canvas = p.createCanvas(400, 400);
                 canvas.parent('original-space');
-                p.noLoop(); // 原始空间不需要动画循环
             };
 
             p.draw = function() {
-                if (determinantVisualizer) {
-                    determinantVisualizer.drawOriginalSpace(p);
+                if (linearTransformVisualizer) {
+                    linearTransformVisualizer.drawOriginalSpace(p);
                 }
             };
         };
 
         /**
-         * 变换空间画布的p5.js实例
+         * 变换后空间画布的p5.js实例
          */
         let transformedSpaceSketch = function(p) {
             p.setup = function() {
@@ -1476,21 +1423,21 @@
             };
 
             p.draw = function() {
-                if (determinantVisualizer) {
-                    determinantVisualizer.drawTransformedSpace(p);
+                if (linearTransformVisualizer) {
+                    linearTransformVisualizer.drawTransformedSpace(p);
                 }
             };
         };
 
         // =============================================
-        // 模块六: 初始化函数
+        // 模块七: 初始化函数
         // =============================================
 
         /**
          * 页面加载初始化
          */
         function initializePage() {
-            determinantVisualizer = new DeterminantRenderer();
+            linearTransformVisualizer = new LinearTransformationRenderer();
             
             // 创建p5.js实例
             new p5(originalSpaceSketch);
@@ -1498,20 +1445,11 @@
             
             // 初始化显示
             updateMatrixInputs();
-            determinantVisualizer.updateDeterminantInfo();
-            
-            // 手动触发一次绘制
-            setTimeout(() => {
-                // 强制重绘画布
-                let p5Instances = document.querySelectorAll('canvas').length;
-                if (p5Instances > 0) {
-                    // 画布已创建，无需额外操作
-                }
-            }, 100);
+            linearTransformVisualizer.updateTransformInfo();
         }
 
         // =============================================
-        // 模块七: 用户界面控制函数
+        // 模块八: 用户界面控制函数
         // =============================================
 
         /**
@@ -1526,8 +1464,8 @@
             event.target.classList.add('active');
             
             // 更新可视化标签页
-            if (determinantVisualizer) {
-                determinantVisualizer.system.currentTab = tabName;
+            if (linearTransformVisualizer) {
+                linearTransformVisualizer.system.currentTab = tabName;
             }
             
             // 更新说明显示
@@ -1541,36 +1479,36 @@
          * 更新矩阵参数
          */
         function updateMatrix() {
-            if (!determinantVisualizer) return;
+            if (!linearTransformVisualizer) return;
             
             const a11 = parseFloat(document.getElementById('a11').value);
             const a12 = parseFloat(document.getElementById('a12').value);
             const a21 = parseFloat(document.getElementById('a21').value);
             const a22 = parseFloat(document.getElementById('a22').value);
             
-            determinantVisualizer.system.updateMatrix(a11, a12, a21, a22);
-            determinantVisualizer.updateDeterminantInfo();
+            linearTransformVisualizer.system.updateMatrix(a11, a12, a21, a22);
+            linearTransformVisualizer.updateTransformInfo();
         }
 
         /**
-         * 更新矩阵缩放
+         * 更新变换强度
          */
-        function updateMatrixScale() {
-            const scale = parseFloat(document.getElementById('matrixScale').value);
-            document.getElementById('matrixScaleValue').textContent = scale.toFixed(2);
+        function updateTransformStrength() {
+            const strength = parseFloat(document.getElementById('transformStrength').value);
+            document.getElementById('transformStrengthValue').textContent = strength.toFixed(2);
             
-            // 这里可以添加矩阵缩放逻辑
+            // 这里可以添加变换强度逻辑
         }
 
         /**
          * 应用预设变换
          */
         function applyPreset() {
-            if (!determinantVisualizer) return;
+            if (!linearTransformVisualizer) return;
             
             const preset = document.getElementById('presetTransform').value;
-            determinantVisualizer.system.applyPreset(preset);
-            determinantVisualizer.updateDeterminantInfo();
+            linearTransformVisualizer.system.applyPreset(preset);
+            linearTransformVisualizer.updateTransformInfo();
             
             // 更新矩阵输入框显示
             updateMatrixInputs();
@@ -1580,9 +1518,9 @@
          * 更新矩阵输入框显示
          */
         function updateMatrixInputs() {
-            if (!determinantVisualizer) return;
+            if (!linearTransformVisualizer) return;
             
-            const matrix = determinantVisualizer.system.matrix;
+            const matrix = linearTransformVisualizer.system.matrix;
             document.getElementById('a11').value = matrix.a11;
             document.getElementById('a12').value = matrix.a12;
             document.getElementById('a21').value = matrix.a21;
@@ -1596,9 +1534,9 @@
             const degrees = parseInt(document.getElementById('rotation').value);
             document.getElementById('rotationValue').textContent = degrees;
             
-            if (determinantVisualizer) {
-                determinantVisualizer.system.setRotation(degrees);
-                determinantVisualizer.updateDeterminantInfo();
+            if (linearTransformVisualizer) {
+                linearTransformVisualizer.system.setRotation(degrees);
+                linearTransformVisualizer.updateTransformInfo();
                 updateMatrixInputs();
             }
         }
@@ -1610,9 +1548,9 @@
             const scale = parseFloat(document.getElementById('scale').value);
             document.getElementById('scaleValue').textContent = scale.toFixed(2);
             
-            if (determinantVisualizer) {
-                determinantVisualizer.system.setScale(scale);
-                determinantVisualizer.updateDeterminantInfo();
+            if (linearTransformVisualizer) {
+                linearTransformVisualizer.system.setScale(scale);
+                linearTransformVisualizer.updateTransformInfo();
                 updateMatrixInputs();
             }
         }
@@ -1621,18 +1559,18 @@
          * 播放变换动画
          */
         function animateTransformation() {
-            if (determinantVisualizer) {
-                determinantVisualizer.system.startAnimation();
+            if (linearTransformVisualizer) {
+                linearTransformVisualizer.system.startAnimation();
             }
         }
 
         /**
-         * 重置变换
+         * 重置可视化
          */
-        function resetTransformation() {
-            if (determinantVisualizer) {
-                determinantVisualizer.system.updateMatrix(1, 0, 0, 1);
-                determinantVisualizer.updateDeterminantInfo();
+        function resetVisualization() {
+            if (linearTransformVisualizer) {
+                linearTransformVisualizer.system.updateMatrix(1, 0, 0, 1);
+                linearTransformVisualizer.updateTransformInfo();
                 updateMatrixInputs();
             }
         }
@@ -1641,50 +1579,18 @@
          * 切换网格显示
          */
         function toggleGrid() {
-            if (determinantVisualizer) {
-                determinantVisualizer.system.showGrid = !determinantVisualizer.system.showGrid;
+            if (linearTransformVisualizer) {
+                linearTransformVisualizer.system.showGrid = !linearTransformVisualizer.system.showGrid;
             }
         }
 
         /**
-         * 导出当前状态
+         * 切换向量显示
          */
-        function exportState() {
-            if (!determinantVisualizer) return;
-            
-            const state = {
-                matrix: determinantVisualizer.system.matrix,
-                determinant: determinantVisualizer.system.matrix.determinant(),
-                timestamp: new Date().toISOString()
-            };
-            
-            console.log('导出状态:', state);
-            alert('状态已导出到控制台，行列式值: ' + state.determinant.toFixed(3));
-        }
-
-        // =============================================
-        // 模块八: 工具函数
-        // =============================================
-
-        /**
-         * 格式化数值显示
-         * @param {number} value - 要格式化的数值
-         * @param {number} decimals - 小数位数
-         * @returns {string} 格式化后的字符串
-         */
-        function formatNumber(value, decimals = 3) {
-            return value.toFixed(decimals);
-        }
-
-        /**
-         * 限制数值范围
-         * @param {number} value - 输入值
-         * @param {number} min - 最小值
-         * @param {number} max - 最大值
-         * @returns {number} 限制后的值
-         */
-        function clamp(value, min, max) {
-            return Math.min(Math.max(value, min), max);
+        function toggleVectors() {
+            if (linearTransformVisualizer) {
+                linearTransformVisualizer.system.showVectors = !linearTransformVisualizer.system.showVectors;
+            }
         }
 
         // 页面加载完成后初始化
