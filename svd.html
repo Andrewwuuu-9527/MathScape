@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>奇异值分解(SVD) - 数学可视化实验室</title>
+    <title>奇异值分解(SVD) </title>
     <style>
         /* === CSS 变量定义 - 确保主题一致性 === */
         :root {
@@ -412,6 +412,7 @@
             <a href="determinants.html" class="nav-button">行列式几何</a>
             <a href="svd.html" class="nav-button active">奇异值分解</a>
             <a href="linear_transformations.html" class="nav-button">线性变换</a>
+            <a href="qr.html" class="nav-button">QR分解</a>
             <a href="fourier.html" class="nav-button">傅里叶变换</a>
             <a href="gradient_descent.html" class="nav-button">梯度下降</a>
             <a href="probability.html" class="nav-button">概率分布</a>
@@ -526,7 +527,7 @@
         
         <div class="explanation">
             <div id="decompositionExplanation">
-                <h3>奇异值分解(SVD)原理</h3>
+                <h3>奇异值分解(SVD)的原理</h3>
                 <p>奇异值分解是线性代数中一种重要的矩阵分解方法，它将任意矩阵分解为三个特殊矩阵的乘积：</p>
                 
                 <div class="math-equation">
@@ -554,7 +555,7 @@
             </div>
             
             <div id="geometryExplanation" style="display:none">
-                <h3>SVD的几何意义</h3>
+                <h3>几何意义</h3>
                 <p>奇异值分解提供了线性变换的几何直观理解：</p>
                 
                 <p><strong>单位圆的变换：</strong></p>
@@ -579,13 +580,13 @@
                 <p>这个分解揭示了线性变换的本质：任何线性变换都可以分解为旋转、缩放、再旋转的组合。</p>
                 
                 <div class="info-panel">
-                    <strong>可视化提示：</strong> 观察单位圆如何通过三个步骤变换为椭圆，注意奇异值如何决定椭圆的形状和大小。
+                    <strong>提示：</strong> 请你观察单位圆如何通过三个步骤变换为椭圆，并注意奇异值如何决定椭圆的形状和大小。
                 </div>
             </div>
             
             <div id="applicationsExplanation" style="display:none">
-                <h3>SVD的应用场景</h3>
-                <p>奇异值分解在科学计算和工程中有广泛应用：</p>
+                <h3>应用场景</h3>
+                <p>奇异值分解在科学计算和工程中具有广泛的应用：</p>
                 
                 <p><strong>1. 主成分分析(PCA)：</strong></p>
                 <ul>
@@ -633,12 +634,12 @@
     <!-- 引入p5.js库 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
     
-    <!-- SVD可视化代码 -->
+    <!-- SVD -->
     <script>
         // =============================================================================
-        // 奇异值分解(SVD)可视化模块 - 修复文字显示问题
-        // 作者: 数学可视化实验室
-        // 描述: 奇异值分解的几何解释与可视化
+        // 奇异值分解(SVD)
+        // 作者: MathScape
+        // 描述: 奇异值分解的几何解释
         // =============================================================================
 
         // =============================================

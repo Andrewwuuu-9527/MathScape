@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR分解 </title>
+    <style>
+        :root {
+            --primary-color: #9c27b0;
+            --primary-dark: #7b1fa2;
+            --secondary-color: #f3e5f5;
+            --text-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --control-bg: #f3e5f5;
+            --header-gradient: linear-gradient(135deg, #9c27b0 0%, #7b1fa2 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-button:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .nav-button.active {
+            background: #3498db;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+        }
+
+        header {
+            text-align: center;
+            background: var(--header-gradient);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.8em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .visualization-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 968px) {
+            .visualization-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sketch-panel {
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sketch-panel h3 {
+            text-align: center;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            margin: 0;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .controls {
+            background: var(--control-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .controls h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-size: 1.5em;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-group h4 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .matrix-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .matrix-input {
+            text-align: center;
+        }
+
+        .matrix-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .matrix-input input {
+            width: 80px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .matrix-input input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .slider-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 16px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(156, 39, 176, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #95a5a6;
+        }
+
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .explanation {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin: 25px 0;
+        }
+
+        .explanation h3 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .explanation p {
+            margin-bottom: 15px;
+        }
+
+        .explanation ul, .explanation ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .explanation li {
+            margin-bottom: 8px;
+        }
+
+        .math-equation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .info-panel {
+            background: #f3e5f5;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #bdc3c7;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: var(--text-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #95a5a6;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .matrix-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-button {
+                width: 90%;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">特征值与特征向量</a>
+            <a href="determinants.html" class="nav-button">行列式几何</a>
+            <a href="svd.html" class="nav-button">奇异值分解</a>
+            <a href="linear_transformations.html" class="nav-button">线性变换</a>
+            <a href="qr.html" class="nav-button active">QR分解</a>
+            <a href="fourier.html" class="nav-button">傅里叶变换</a>
+            <a href="gradient_descent.html" class="nav-button">梯度下降</a>
+            <a href="probability.html" class="nav-button">概率分布</a>
+            <a href="differential_equations.html" class="nav-button">微分方程</a>
+        </div>
+    </nav>
+
+    <header>
+        <h1>QR分解</h1>
+        <p class="subtitle">探索矩阵的正交三角分解及其几何意义</p>
+    </header>
+    
+    <main>
+        <div class="tab-container">
+            <button class="tab active" id="decompositionTab">分解过程</button>
+            <button class="tab" id="gramSchmidtTab">Gram-Schmidt过程</button>
+            <button class="tab" id="applicationsTab">应用场景</button>
+        </div>
+        
+        <div class="visualization-container">
+            <div class="sketch-panel">
+                <h3>原始向量与QR分解</h3>
+                <div id="qr-space"></div>
+            </div>
+            <div class="sketch-panel">
+                <h3>Gram-Schmidt正交化</h3>
+                <div id="gram-schmidt-space"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>矩阵参数控制</h3>
+            
+            <div class="control-grid">
+                <div class="control-group">
+                    <h4>矩阵 A</h4>
+                    
+                    <div class="matrix-controls">
+                        <div class="matrix-input">
+                            <label>a₁₁</label>
+                            <input type="number" id="a11" value="3" step="0.1">
+                        </div>
+                        <div class="matrix-input">
+                            <label>a₁₂</label>
+                            <input type="number" id="a12" value="1" step="0.1">
+                        </div>
+                        <div class="matrix-input">
+                            <label>a₂₁</label>
+                            <input type="number" id="a21" value="1" step="0.1">
+                        </div>
+                        <div class="matrix-input">
+                            <label>a₂₂</label>
+                            <input type="number" id="a22" value="2" step="0.1">
+                        </div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>矩阵范数缩放: 
+                            <span class="slider-value" id="matrixScaleValue">1.00</span>
+                        </label>
+                        <input type="range" id="matrixScale" min="0.1" max="2.0" step="0.05" value="1.0">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>预设矩阵</h4>
+                    
+                    <div class="slider-container">
+                        <label>选择预设: 
+                            <select id="presetMatrix">
+                                <option value="identity">单位矩阵</option>
+                                <option value="orthogonal">正交矩阵</option>
+                                <option value="triangular">三角矩阵</option>
+                                <option value="wellConditioned">良态矩阵</option>
+                                <option value="illConditioned">病态矩阵</option>
+                                <option value="custom">自定义</option>
+                            </select>
+                        </label>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>正交化步骤: 
+                            <span class="slider-value" id="orthoStepValue">0</span>
+                        </label>
+                        <input type="range" id="orthoStep" min="0" max="2" step="1" value="0">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>分解动画进度: 
+                            <span class="slider-value" id="animationValue">0%</span>
+                        </label>
+                        <input type="range" id="animation" min="0" max="100" step="1" value="0">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <strong>QR分解信息:</strong>
+                <span id="qrInfo">计算中...</span>
+            </div>
+            
+            <div class="button-group">
+                <button id="animateButton">播放分解动画</button>
+                <button id="resetButton" class="secondary">重置</button>
+                <button id="stepButton" class="secondary">下一步</button>
+                <button id="verifyButton" class="secondary">验证分解</button>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <div id="decompositionExplanation">
+                <h3>QR分解的原理</h3>
+                <p>QR分解是将一个矩阵分解为一个正交矩阵Q和一个上三角矩阵R的乘积：</p>
+                
+                <div class="math-equation">
+                    A = Q R
+                </div>
+                
+                <p><strong>其中：</strong></p>
+                <ul>
+                    <li><strong>Q</strong>：正交矩阵，满足 Q<sup>T</sup>Q = I</li>
+                    <li><strong>R</strong>：上三角矩阵，所有对角线以下的元素为零</li>
+                </ul>
+                
+                <p><strong>几何解释：</strong></p>
+                <p>QR分解可以理解为将矩阵A的列向量空间通过Gram-Schmidt过程正交化：</p>
+                <ol>
+                    <li>第一个列向量保持方向不变，仅进行归一化</li>
+                    <li>第二个列向量减去其在第一个向量方向上的投影，然后归一化</li>
+                    <li>重复此过程直到所有列向量正交</li>
+                </ol>
+                
+                <div class="info-panel">
+                    <strong>关键性质：</strong> QR分解总是存在的，并且如果A是满秩的，那么分解是唯一的（在R的对角线元素为正的条件下）。
+                </div>
+            </div>
+            
+            <div id="gramSchmidtExplanation" style="display:none">
+                <h3>Gram-Schmidt正交化过程</h3>
+                <p>Gram-Schmidt过程是计算QR分解的核心算法，它将一组线性无关的向量转化为一组正交向量：</p>
+                
+                <p><strong>算法步骤：</strong></p>
+                <ol>
+                    <li>设 u₁ = a₁，q₁ = u₁ / ||u₁||</li>
+                    <li>对于 k = 2, 3, ..., n:
+                        <ul>
+                            <li>计算投影：proj = Σ⟨aₖ, qᵢ⟩qᵢ (i=1 to k-1)</li>
+                            <li>计算正交向量：uₖ = aₖ - proj</li>
+                            <li>归一化：qₖ = uₖ / ||uₖ||</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <p><strong>矩阵形式：</strong></p>
+                <div class="math-equation">
+                    A = [a₁ a₂ ... aₙ] = [q₁ q₂ ... qₙ] R = Q R
+                </div>
+                
+                <p>其中R的元素为：</p>
+                <div class="math-equation">
+                    rᵢⱼ = ⟨aⱼ, qᵢ⟩ (i ≤ j), rᵢⱼ = 0 (i > j)
+                </div>
+                
+                <p><strong>数值稳定性：</strong></p>
+                <p>经典的Gram-Schmidt过程在数值计算中可能不稳定，改进的Gram-Schmidt过程通过重新正交化提高了数值稳定性。</p>
+                
+                <div class="info-panel">
+                    <strong>可视化提示：</strong> 观察Gram-Schmidt过程中向量如何逐步正交化，注意投影和残差向量的几何意义。
+                </div>
+            </div>
+            
+            <div id="applicationsExplanation" style="display:none">
+                <h3>应用场景</h3>
+                <p>QR分解在科学计算和工程中具有广泛的应用：</p>
+                
+                <p><strong>1. 最小二乘问题：</strong></p>
+                <ul>
+                    <li>求解超定线性方程组 Ax ≈ b</li>
+                    <li>通过QR分解将问题转化为求解 R x = Q<sup>T</sup>b</li>
+                    <li>由于R是上三角矩阵，可以使用回代法高效求解</li>
+                </ul>
+                
+                <p><strong>2. 特征值计算：</strong></p>
+                <ul>
+                    <li>QR算法是计算矩阵特征值的标准方法</li>
+                    <li>通过迭代QR分解收敛到特征值</li>
+                    <li>在数值线性代数中具有基础地位</li>
+                </ul>
+                
+                <p><strong>3. 线性方程组求解：</strong></p>
+                <ul>
+                    <li>对于方阵系统 Ax = b</li>
+                    <li>通过QR分解转化为 Q R x = b</li>
+                    <li>然后求解 R x = Q<sup>T</sup>b</li>
+                </ul>
+                
+                <p><strong>4. 正交基构造：</strong></p>
+                <ul>
+                    <li>生成向量空间的正交基</li>
+                    <li>在信号处理和数值分析中广泛应用</li>
+                    <li>为其他算法提供数值稳定的基础</li>
+                </ul>
+                
+                <p><strong>5. 矩阵求逆和行列式计算：</strong></p>
+                <ul>
+                    <li>通过QR分解高效计算矩阵逆和行列式</li>
+                    <li>特别适用于病态矩阵的数值稳定计算</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>实际意义：</strong> QR分解提供了一种数值稳定的方法来解决许多线性代数问题，
+                    并且在计算机实现中比直接使用原始矩阵更加可靠。
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- QR分解 -->
+    <script>
+        // =============================================================================
+        // QR分解
+        // =============================================================================
+
+        const VisualizationState = {
+            STATIC: 'static',
+            ANIMATING: 'animating',
+            INTERACTIVE: 'interactive'
+        };
+
+        const TabType = {
+            DECOMPOSITION: 'decomposition',
+            GRAM_SCHMIDT: 'gramSchmidt',
+            APPLICATIONS: 'applications'
+        };
+
+        const PresetType = {
+            IDENTITY: 'identity',
+            ORTHOGONAL: 'orthogonal',
+            TRIANGULAR: 'triangular',
+            WELL_CONDITIONED: 'wellConditioned',
+            ILL_CONDITIONED: 'illConditioned',
+            CUSTOM: 'custom'
+        };
+
+        const VISUAL_CONFIG = {
+            CANVAS_WIDTH: 400,
+            CANVAS_HEIGHT: 400,
+            ANIMATION_DURATION: 3000,
+            GRID_SIZE: 50,
+            VECTOR_COLORS: [
+                [30, 144, 255],
+                [50, 205, 50],
+                [255, 140, 0],
+                [148, 0, 211]
+            ],
+            GRID_COLOR: [200, 200, 200, 50],
+            PROJECTION_COLOR: [255, 0, 0, 100]
+        };
+
+        // =============================================
+        // 数学核心类
+        // =============================================
+
+        class Vector2D {
+            constructor(x = 0, y = 0) {
+                this.x = x;
+                this.y = y;
+            }
+            add(other) { return new Vector2D(this.x + other.x, this.y + other.y); }
+            subtract(other) { return new Vector2D(this.x - other.x, this.y - other.y); }
+            multiply(scalar) { return new Vector2D(this.x * scalar, this.y * scalar); }
+            magnitude() { return Math.sqrt(this.x * this.x + this.y * this.y); }
+            normalize() { const mag = this.magnitude(); return mag === 0 ? new Vector2D(0, 0) : new Vector2D(this.x / mag, this.y / mag); }
+            dot(other) { return this.x * other.x + this.y * other.y; }
+            toArray() { return [this.x, this.y]; }
+            clone() { return new Vector2D(this.x, this.y); }
+        }
+
+        class Matrix2x2 {
+            constructor(a11 = 1, a12 = 0, a21 = 0, a22 = 1) {
+                this.a11 = a11;
+                this.a12 = a12;
+                this.a21 = a21;
+                this.a22 = a22;
+            }
+            multiplyVector(vector) {
+                return new Vector2D(
+                    this.a11 * vector.x + this.a12 * vector.y,
+                    this.a21 * vector.x + this.a22 * vector.y
+                );
+            }
+            multiplyMatrix(other) {
+                return new Matrix2x2(
+                    this.a11 * other.a11 + this.a12 * other.a21,
+                    this.a11 * other.a12 + this.a12 * other.a22,
+                    this.a21 * other.a11 + this.a22 * other.a21,
+                    this.a21 * other.a12 + this.a22 * other.a22
+                );
+            }
+            transpose() { return new Matrix2x2(this.a11, this.a21, this.a12, this.a22); }
+            determinant() { return this.a11 * this.a22 - this.a12 * this.a21; }
+            isOrthogonal() {
+                const product = this.multiplyMatrix(this.transpose());
+                return Math.abs(product.a11 - 1) < 1e-10 && 
+                       Math.abs(product.a12) < 1e-10 &&
+                       Math.abs(product.a21) < 1e-10 &&
+                       Math.abs(product.a22 - 1) < 1e-10;
+            }
+            static identity() { return new Matrix2x2(1, 0, 0, 1); }
+            static rotation(angle) {
+                const cos = Math.cos(angle);
+                const sin = Math.sin(angle);
+                return new Matrix2x2(cos, -sin, sin, cos);
+            }
+            static scaling(sx, sy) { return new Matrix2x2(sx, 0, 0, sy); }
+        }
+
+        class QRResult {
+            constructor(Q, R) {
+                this.Q = Q;
+                this.R = R;
+            }
+            reconstruct() { return this.Q.multiplyMatrix(this.R); }
+            verify() {
+                const reconstructed = this.reconstruct();
+                return Math.abs(reconstructed.a11 - this.originalA.a11) < 1e-10 &&
+                       Math.abs(reconstructed.a12 - this.originalA.a12) < 1e-10 &&
+                       Math.abs(reconstructed.a21 - this.originalA.a21) < 1e-10 &&
+                       Math.abs(reconstructed.a22 - this.originalA.a22) < 1e-10;
+            }
+        }
+
+        // =============================================
+        // QR分解算法
+        // =============================================
+
+        class QRCalculator {
+            static computeQR2x2(A) {
+                const a1 = new Vector2D(A.a11, A.a21);
+                const a2 = new Vector2D(A.a12, A.a22);
+                const q1 = a1.normalize();
+                const r11 = a1.magnitude();
+                const r12 = a2.dot(q1);
+                const proj = q1.multiply(r12);
+                const u2 = a2.subtract(proj);
+                const q2 = u2.normalize();
+                const r22 = u2.magnitude();
+                const Q = new Matrix2x2(q1.x, q2.x, q1.y, q2.y);
+                const R = new Matrix2x2(r11, r12, 0, r22);
+                const result = new QRResult(Q, R);
+                result.originalA = A;
+                return result;
+            }
+            static getGramSchmidtSteps(A) {
+                const a1 = new Vector2D(A.a11, A.a21);
+                const a2 = new Vector2D(A.a12, A.a22);
+                const step0 = { q1: null, q2: null, proj: null, u2: null, description: "初始向量" };
+                const step1 = { q1: a1.normalize(), q2: null, proj: null, u2: null, description: "归一化第一个向量" };
+                const r12 = a2.dot(step1.q1);
+                const proj = step1.q1.multiply(r12);
+                const u2 = a2.subtract(proj);
+                const step2 = { q1: step1.q1, q2: null, proj: proj, u2: u2, description: "计算第二个向量的投影和残差" };
+                const step3 = { q1: step1.q1, q2: u2.normalize(), proj: proj, u2: u2, description: "归一化第二个向量，完成正交化" };
+                return [step0, step1, step2, step3];
+            }
+        }
+
+        // =============================================
+        // 可视化系统类
+        // =============================================
+
+        class QRVisualization {
+            constructor() {
+                this.matrix = new Matrix2x2(3, 1, 1, 2);
+                this.qr = null;
+                this.computeQR();
+                this.gramSchmidtSteps = QRCalculator.getGramSchmidtSteps(this.matrix);
+                this.currentStep = 0;
+                this.animationProgress = 0;
+                this.animationStartTime = 0;
+                this.state = VisualizationState.STATIC;
+                this.showGrid = true;
+                this.currentTab = TabType.DECOMPOSITION;
+                this.visualScale = 1.0; // 新增：视觉缩放因子
+            }
+            computeQR() { this.qr = QRCalculator.computeQR2x2(this.matrix); }
+            applyPreset(preset) {
+                switch (preset) {
+                    case PresetType.IDENTITY:
+                        this.matrix = new Matrix2x2(1, 0, 0, 1);
+                        break;
+                    case PresetType.ORTHOGONAL:
+                        this.matrix = Matrix2x2.rotation(Math.PI / 6);
+                        break;
+                    case PresetType.TRIANGULAR:
+                        this.matrix = new Matrix2x2(2, 1, 0, 3);
+                        break;
+                    case PresetType.WELL_CONDITIONED:
+                        this.matrix = new Matrix2x2(3, 1, 1, 2);
+                        break;
+                    case PresetType.ILL_CONDITIONED:
+                        this.matrix = new Matrix2x2(1, 1, 1, 1.0001);
+                        break;
+                    case PresetType.CUSTOM:
+                        break;
+                }
+                this.computeQR();
+                this.gramSchmidtSteps = QRCalculator.getGramSchmidtSteps(this.matrix);
+                this.currentStep = 0;
+            }
+            updateMatrix(a11, a12, a21, a22) {
+                this.matrix = new Matrix2x2(a11, a12, a21, a22);
+                this.computeQR();
+                this.gramSchmidtSteps = QRCalculator.getGramSchmidtSteps(this.matrix);
+                this.currentStep = 0;
+            }
+            setOrthoStep(step) {
+                this.currentStep = Math.max(0, Math.min(step, this.gramSchmidtSteps.length - 1));
+            }
+            nextStep() {
+                if (this.currentStep < this.gramSchmidtSteps.length - 1) this.currentStep++;
+            }
+            startAnimation() {
+                this.animationProgress = 0;
+                this.animationStartTime = Date.now();
+                this.state = VisualizationState.ANIMATING;
+            }
+            updateAnimation() {
+                if (this.state !== VisualizationState.ANIMATING) return;
+                const elapsed = Date.now() - this.animationStartTime;
+                this.animationProgress = Math.min(elapsed / VISUAL_CONFIG.ANIMATION_DURATION, 1);
+                if (this.animationProgress >= 1) this.state = VisualizationState.STATIC;
+            }
+            get easedProgress() {
+                const t = this.animationProgress;
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+        }
+
+        // =============================================
+        // 渲染器
+        // =============================================
+
+        class QRRenderer {
+            constructor() {
+                this.system = new QRVisualization();
+                this._placedLabels = []; 
+            }
+            _beginFrame() { this._placedLabels = []; }
+            _placeLabel(p, x, y) {
+                // 简单避让：若太近则斜向平移
+                for (let [lx, ly] of this._placedLabels) {
+                    if (Math.abs(lx - x) < 24 && Math.abs(ly - y) < 16) {
+                        x += 10; y += 10;
+                    }
+                }
+                // 保持在画布范围内
+                const margin = 6;
+                x = Math.max(margin, Math.min(x, VISUAL_CONFIG.CANVAS_WIDTH - margin));
+                y = Math.max(margin, Math.min(y, VISUAL_CONFIG.CANVAS_HEIGHT - margin));
+                this._placedLabels.push([x, y]);
+                return { x, y };
+            }
+            _textWithBg(p, str, x, y) {
+                const w = p.textWidth(str);
+                p.fill(255, 255, 255, 200);
+                p.noStroke();
+                p.rect(x - 2, y - 12, w + 6, 16, 4);
+                p.fill(0);
+                p.text(str, x, y);
+            }
+            drawQRSpace(p) {
+                this._beginFrame();
+                p.background(250);
+                p.translate(VISUAL_CONFIG.CANVAS_WIDTH / 2, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+                p.scale(1, -1);
+
+                if (this.system.showGrid) this.drawGrid(p);
+                this.drawAxes(p);
+                this.drawOriginalVectors(p);
+                this.drawQRDecomposition(p);
+                this.drawQRInfo(p);
+            }
+            drawGramSchmidtSpace(p) {
+                this._beginFrame();
+                p.background(250);
+                p.translate(VISUAL_CONFIG.CANVAS_WIDTH / 2, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+                p.scale(1, -1);
+
+                if (this.system.showGrid) this.drawGrid(p);
+                this.drawAxes(p);
+                this.drawGramSchmidtProcess(p);
+                this.drawStepInfo(p);
+            }
+            drawGrid(p) {
+                p.stroke(...VISUAL_CONFIG.GRID_COLOR);
+                p.strokeWeight(1);
+                const halfWidth = VISUAL_CONFIG.CANVAS_WIDTH / 2;
+                const halfHeight = VISUAL_CONFIG.CANVAS_HEIGHT / 2;
+                const gridSize = VISUAL_CONFIG.GRID_SIZE;
+                for (let x = -halfWidth; x <= halfWidth; x += gridSize) p.line(x, -halfHeight, x, halfHeight);
+                for (let y = -halfHeight; y <= halfHeight; y += gridSize) p.line(-halfWidth, y, halfWidth, y);
+            }
+            drawAxes(p) {
+                p.stroke(0);
+                p.strokeWeight(2);
+                const halfWidth = VISUAL_CONFIG.CANVAS_WIDTH / 2;
+                const halfHeight = VISUAL_CONFIG.CANVAS_HEIGHT / 2;
+                p.line(-halfWidth, 0, halfWidth, 0);
+                p.line(0, -halfHeight, 0, halfHeight);
+                this.drawArrow(p, halfWidth - 10, 0, halfWidth, 0);
+                this.drawArrow(p, 0, halfHeight - 10, 0, halfHeight);
+                p.push();
+                p.scale(1, -1);
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.LEFT, p.TOP);
+                p.text("x", halfWidth - 15, 5);
+                p.text("y", 5, -halfHeight + 15);
+                p.pop();
+            }
+            drawArrow(p, x1, y1, x2, y2) {
+                p.line(x1, y1, x2, y2);
+                const angle = p.atan2(y2 - y1, x2 - x1);
+                const arrowSize = 8;
+                p.push();
+                p.translate(x2, y2);
+                p.rotate(angle);
+                p.line(0, 0, -arrowSize, arrowSize / 2);
+                p.line(0, 0, -arrowSize, -arrowSize / 2);
+                p.pop();
+            }
+            drawVector(p, start, end) {
+                p.line(start.x, start.y, end.x, end.y);
+                this.drawArrow(p, start.x, start.y, end.x, end.y);
+            }
+            drawOriginalVectors(p) {
+                const scale = VISUAL_CONFIG.GRID_SIZE * (this.system.visualScale || 1);
+                const matrix = this.system.matrix;
+                const a1 = new Vector2D(matrix.a11, matrix.a21);
+                const a2 = new Vector2D(matrix.a12, matrix.a22);
+
+                p.stroke(...VISUAL_CONFIG.VECTOR_COLORS[0]);
+                p.strokeWeight(3);
+                this.drawVector(p, new Vector2D(0, 0), a1.multiply(scale));
+                this.drawVector(p, new Vector2D(0, 0), a2.multiply(scale));
+
+                p.fill(...VISUAL_CONFIG.VECTOR_COLORS[0]);
+                p.noStroke();
+                p.push();
+                p.scale(1, -1);
+                p.textAlign(p.LEFT, p.TOP);
+                p.textSize(12);
+
+                // 注意：在 scale(1,-1) 块内，屏幕 y 为 “-数学坐标y”
+                const l1 = this._placeLabel(p, a1.x * scale + 10, -a1.y * scale + 10);
+                const l2 = this._placeLabel(p, a2.x * scale + 10, -a2.y * scale + 10);
+                this._textWithBg(p, "a₁", l1.x, l1.y);
+                this._textWithBg(p, "a₂", l2.x, l2.y);
+
+                p.pop();
+            }
+            drawQRDecomposition(p) {
+                const scale = VISUAL_CONFIG.GRID_SIZE * (this.system.visualScale || 1);
+                const qr = this.system.qr;
+                if (!qr) return;
+
+                // 动画插值：从 a → q
+                const a1 = new Vector2D(qr.originalA.a11, qr.originalA.a21);
+                const a2 = new Vector2D(qr.originalA.a12, qr.originalA.a22);
+                const q1 = new Vector2D(qr.Q.a11, qr.Q.a21);
+                const q2 = new Vector2D(qr.Q.a12, qr.Q.a22);
+                const prog = this.system.state === VisualizationState.ANIMATING ? this.system.easedProgress : 1;
+
+                const v1 = new Vector2D(a1.x + (q1.x - a1.x) * prog, a1.y + (q1.y - a1.y) * prog);
+                const v2 = new Vector2D(a2.x + (q2.x - a2.x) * prog, a2.y + (q2.y - a2.y) * prog);
+
+                p.stroke(...VISUAL_CONFIG.VECTOR_COLORS[1]);
+                p.strokeWeight(3);
+                this.drawVector(p, new Vector2D(0, 0), v1.multiply(scale));
+                this.drawVector(p, new Vector2D(0, 0), v2.multiply(scale));
+
+                p.fill(...VISUAL_CONFIG.VECTOR_COLORS[1]);
+                p.noStroke();
+                p.push();
+                p.scale(1, -1);
+                p.textAlign(p.LEFT, p.TOP);
+                p.textSize(12);
+                const lq1 = this._placeLabel(p, v1.x * scale + 10, -v1.y * scale + 10);
+                const lq2 = this._placeLabel(p, v2.x * scale + 10, -v2.y * scale + 10);
+                this._textWithBg(p, "q₁", lq1.x, lq1.y);
+                this._textWithBg(p, "q₂", lq2.x, lq2.y);
+                p.pop();
+
+                // R矩阵信息
+                const r11 = qr.R.a11, r12 = qr.R.a12, r22 = qr.R.a22;
+                p.fill(0);
+                p.noStroke();
+                p.push();
+                p.scale(1, -1);
+                p.text(`R = [${r11.toFixed(2)}, ${r12.toFixed(2)}]`, -VISUAL_CONFIG.CANVAS_WIDTH/2 + 20, 20);
+                p.text(`    [0, ${r22.toFixed(2)}]`, -VISUAL_CONFIG.CANVAS_WIDTH/2 + 20, 40);
+                p.pop();
+            }
+            drawGramSchmidtProcess(p) {
+                const scale = VISUAL_CONFIG.GRID_SIZE * (this.system.visualScale || 1);
+                const step = this.system.gramSchmidtSteps[this.system.currentStep];
+                if (!step) return;
+
+                const a1 = new Vector2D(this.system.matrix.a11, this.system.matrix.a21);
+                const a2 = new Vector2D(this.system.matrix.a12, this.system.matrix.a22);
+
+                p.stroke(...VISUAL_CONFIG.VECTOR_COLORS[0]);
+                p.strokeWeight(2);
+                this.drawVector(p, new Vector2D(0, 0), a1.multiply(scale));
+                this.drawVector(p, new Vector2D(0, 0), a2.multiply(scale));
+
+                if (step.q1) {
+                    p.stroke(...VISUAL_CONFIG.VECTOR_COLORS[1]);
+                    p.strokeWeight(3);
+                    this.drawVector(p, new Vector2D(0, 0), step.q1.multiply(scale));
+                    p.fill(...VISUAL_CONFIG.VECTOR_COLORS[1]);
+                    p.noStroke();
+                    p.push(); p.scale(1, -1); p.textAlign(p.LEFT, p.TOP); p.textSize(12);
+                    const lq1 = this._placeLabel(p, step.q1.x * scale + 10, -step.q1.y * scale + 10);
+                    this._textWithBg(p, "q₁", lq1.x, lq1.y);
+                    p.pop();
+                }
+
+                if (step.proj) {
+                    p.stroke(...VISUAL_CONFIG.VECTOR_COLORS[2]);
+                    p.strokeWeight(2);
+                    this.drawVector(p, new Vector2D(0, 0), step.proj.multiply(scale));
+                    p.fill(...VISUAL_CONFIG.VECTOR_COLORS[2]);
+                    p.noStroke();
+                    p.push(); p.scale(1, -1); p.textAlign(p.LEFT, p.TOP); p.textSize(12);
+                    const lp = this._placeLabel(p, step.proj.x * scale + 10, -step.proj.y * scale + 10);
+                    this._textWithBg(p, "proj", lp.x, lp.y);
+                    p.pop();
+
+                    p.fill(...VISUAL_CONFIG.PROJECTION_COLOR);
+                    p.noStroke();
+                    p.quad(
+                        0, 0,
+                        step.q1.x * scale, step.q1.y * scale,
+                        step.q1.x * scale + step.proj.x * scale, step.q1.y * scale + step.proj.y * scale,
+                        step.proj.x * scale, step.proj.y * scale
+                    );
+                }
+
+                if (step.u2) {
+                    p.stroke(...VISUAL_CONFIG.VECTOR_COLORS[3]);
+                    p.strokeWeight(2);
+                    const start = step.proj ? step.proj.multiply(scale) : new Vector2D(0, 0);
+                    this.drawVector(p, start, step.u2.multiply(scale).add(start));
+
+                    p.fill(...VISUAL_CONFIG.VECTOR_COLORS[3]);
+                    p.noStroke();
+                    p.push(); p.scale(1, -1); p.textAlign(p.LEFT, p.TOP); p.textSize(12);
+                    const sx = step.proj ? step.proj.x * scale : 0;
+                    const sy = step.proj ? step.proj.y * scale : 0;
+                    const lu2 = this._placeLabel(p, sx + step.u2.x * scale / 2 + 10, -(sy + step.u2.y * scale / 2) + 10);
+                    this._textWithBg(p, "u₂", lu2.x, lu2.y);
+                    p.pop();
+                }
+
+                if (step.q2) {
+                    p.stroke(...VISUAL_CONFIG.VECTOR_COLORS[1]);
+                    p.strokeWeight(3);
+                    this.drawVector(p, new Vector2D(0, 0), step.q2.multiply(scale));
+                    p.fill(...VISUAL_CONFIG.VECTOR_COLORS[1]);
+                    p.noStroke();
+                    p.push(); p.scale(1, -1); p.textAlign(p.LEFT, p.TOP); p.textSize(12);
+                    const lq2 = this._placeLabel(p, step.q2.x * scale + 10, -step.q2.y * scale + 10);
+                    this._textWithBg(p, "q₂", lq2.x, lq2.y);
+                    p.pop();
+                }
+            }
+            drawQRInfo(p) {
+                const qr = this.system.qr;
+                p.push();
+                p.scale(1, -1);
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.LEFT, p.TOP);
+                p.textSize(12);
+                p.text("QR分解可视化", 20, 20);
+                if (qr) {
+                    p.text(`Q = [${qr.Q.a11.toFixed(2)}, ${qr.Q.a12.toFixed(2)}]`, 20, 50);
+                    p.text(`    [${qr.Q.a21.toFixed(2)}, ${qr.Q.a22.toFixed(2)}]`, 20, 70);
+                    const isOrthogonal = qr.Q.isOrthogonal();
+                    p.text(`Q是正交矩阵: ${isOrthogonal ? "是" : "否"}`, 20, 100);
+                    const isCorrect = qr.verify();
+                    p.text(`QR分解验证: ${isCorrect ? "正确" : "错误"}`, 20, 120);
+                }
+                p.pop();
+            }
+            drawStepInfo(p) {
+                const step = this.system.gramSchmidtSteps[this.system.currentStep];
+                p.push();
+                p.scale(1, -1);
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.LEFT, p.TOP);
+                p.textSize(12);
+                p.text("Gram-Schmidt过程", 20, 20);
+                p.text(`步骤 ${this.system.currentStep + 1}/${this.system.gramSchmidtSteps.length}`, 20, 40);
+                if (step) p.text(step.description, 20, 70);
+                p.pop();
+            }
+            updateQRInfo() {
+                const qr = this.system.qr;
+                if (!qr) {
+                    document.getElementById('qrInfo').textContent = "计算中...";
+                    return;
+                }
+                const isOrthogonal = qr.Q.isOrthogonal();
+                const isCorrect = qr.verify();
+                const infoText = `Q正交: ${isOrthogonal ? "是" : "否"} | 分解验证: ${isCorrect ? "正确" : "错误"}`;
+                document.getElementById('qrInfo').textContent = infoText;
+            }
+        }
+
+        // =============================================
+        // 全局实例与初始化
+        // =============================================
+
+        let qrVisualizer;
+
+        // =============================================
+        // p5.js 画布管理 
+        // =============================================
+
+        let qrSpaceSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(VISUAL_CONFIG.CANVAS_WIDTH, VISUAL_CONFIG.CANVAS_HEIGHT);
+                canvas.parent('qr-space');
+                p.frameRate(60);
+            };
+            p.draw = function() {
+                if (qrVisualizer) {
+                    qrVisualizer.system.updateAnimation(); // 关键：推进动画
+                    qrVisualizer.drawQRSpace(p);
+                }
+            };
+        };
+
+        let gramSchmidtSpaceSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(VISUAL_CONFIG.CANVAS_WIDTH, VISUAL_CONFIG.CANVAS_HEIGHT);
+                canvas.parent('gram-schmidt-space');
+                p.frameRate(60);
+            };
+            p.draw = function() {
+                if (qrVisualizer) {
+                    qrVisualizer.system.updateAnimation(); // 关键：推进动画
+                    qrVisualizer.drawGramSchmidtSpace(p);
+                }
+            };
+        };
+
+        // =============================================
+        // 初始化函数
+        // =============================================
+
+        function initializePage() {
+            qrVisualizer = new QRRenderer();
+            new p5(qrSpaceSketch);
+            new p5(gramSchmidtSpaceSketch);
+            updateMatrixInputs();
+            qrVisualizer.updateQRInfo();
+            bindEventListeners();
+        }
+
+        // =============================================
+        // 用户界面控制函数 
+        // =============================================
+
+        function bindEventListeners() {
+            document.getElementById('a11').addEventListener('input', updateMatrix);
+            document.getElementById('a12').addEventListener('input', updateMatrix);
+            document.getElementById('a21').addEventListener('input', updateMatrix);
+            document.getElementById('a22').addEventListener('input', updateMatrix);
+
+            document.getElementById('matrixScale').addEventListener('input', updateMatrixScale);
+            document.getElementById('orthoStep').addEventListener('input', updateOrthoStep);
+            document.getElementById('animation').addEventListener('input', updateAnimation);
+
+            document.getElementById('presetMatrix').addEventListener('change', applyPreset);
+
+            document.getElementById('animateButton').addEventListener('click', animateDecomposition);
+            document.getElementById('resetButton').addEventListener('click', resetVisualization);
+            document.getElementById('stepButton').addEventListener('click', nextStep);
+            document.getElementById('verifyButton').addEventListener('click', verifyDecomposition);
+
+            document.getElementById('decompositionTab').addEventListener('click', () => switchTab('decomposition'));
+            document.getElementById('gramSchmidtTab').addEventListener('click', () => switchTab('gramSchmidt'));
+            document.getElementById('applicationsTab').addEventListener('click', () => switchTab('applications'));
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            if (qrVisualizer) qrVisualizer.system.currentTab = tabName;
+            document.querySelectorAll('.explanation > div').forEach(div => div.style.display = 'none');
+            document.getElementById(tabName + 'Explanation').style.display = 'block';
+        }
+
+        function updateMatrix() {
+            if (!qrVisualizer) return;
+            const a11 = parseFloat(document.getElementById('a11').value);
+            const a12 = parseFloat(document.getElementById('a12').value);
+            const a21 = parseFloat(document.getElementById('a21').value);
+            const a22 = parseFloat(document.getElementById('a22').value);
+            qrVisualizer.system.updateMatrix(a11, a12, a21, a22);
+            qrVisualizer.updateQRInfo();
+        }
+
+        function updateMatrixScale() {
+            const scale = parseFloat(document.getElementById('matrixScale').value);
+            document.getElementById('matrixScaleValue').textContent = scale.toFixed(2);
+            if (qrVisualizer) {
+                qrVisualizer.system.visualScale = scale; // 关键：让滑块生效
+            }
+        }
+
+        function applyPreset() {
+            if (!qrVisualizer) return;
+            const preset = document.getElementById('presetMatrix').value;
+            qrVisualizer.system.applyPreset(preset);
+            qrVisualizer.updateQRInfo();
+            updateMatrixInputs();
+        }
+
+        function updateMatrixInputs() {
+            if (!qrVisualizer) return;
+            const matrix = qrVisualizer.system.matrix;
+            document.getElementById('a11').value = matrix.a11;
+            document.getElementById('a12').value = matrix.a12;
+            document.getElementById('a21').value = matrix.a21;
+            document.getElementById('a22').value = matrix.a22;
+        }
+
+        function updateOrthoStep() {
+            const step = parseInt(document.getElementById('orthoStep').value);
+            document.getElementById('orthoStepValue').textContent = step;
+            if (qrVisualizer) qrVisualizer.system.setOrthoStep(step);
+        }
+
+        function updateAnimation() {
+            const progress = parseInt(document.getElementById('animation').value);
+            document.getElementById('animationValue').textContent = progress + '%';           
+        }
+
+        function animateDecomposition() {
+            if (qrVisualizer) {
+                qrVisualizer.system.startAnimation();
+                // 动画进度条联动显示
+                const id = setInterval(() => {
+                    const prog = Math.round(qrVisualizer.system.animationProgress * 100);
+                    document.getElementById('animation').value = prog;
+                    document.getElementById('animationValue').textContent = prog + '%';
+                    if (qrVisualizer.system.state !== VisualizationState.ANIMATING) clearInterval(id);
+                }, 100);
+            }
+        }
+
+        function resetVisualization() {
+            if (qrVisualizer) {
+                qrVisualizer.system.updateMatrix(3, 1, 1, 2);
+                qrVisualizer.updateQRInfo();
+                updateMatrixInputs();
+                document.getElementById('orthoStep').value = 0;
+                document.getElementById('orthoStepValue').textContent = '0';
+                qrVisualizer.system.setOrthoStep(0);
+                document.getElementById('matrixScale').value = 1.0;
+                document.getElementById('matrixScaleValue').textContent = '1.00';
+                qrVisualizer.system.visualScale = 1.0;
+                document.getElementById('animation').value = 0;
+                document.getElementById('animationValue').textContent = '0%';
+            }
+        }
+
+        function nextStep() {
+            if (qrVisualizer) {
+                qrVisualizer.system.nextStep();
+                const step = qrVisualizer.system.currentStep;
+                document.getElementById('orthoStep').value = step;
+                document.getElementById('orthoStepValue').textContent = step;
+            }
+        }
+
+        function verifyDecomposition() {
+            if (!qrVisualizer || !qrVisualizer.system.qr) return;
+            const isCorrect = qrVisualizer.system.qr.verify();
+            alert(`QR分解验证: ${isCorrect ? "正确" : "错误"}`);
+        }
+
+        window.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>
