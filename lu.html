@@ -1,0 +1,1427 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LU分解</title>
+    <style>
+        :root {
+            --primary-color: #4caf50;
+            --primary-dark: #388e3c;
+            --secondary-color: #e8f5e9;
+            --text-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --control-bg: #e8f5e9;
+            --header-gradient: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-button:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .nav-button.active {
+            background: #3498db;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+        }
+
+        header {
+            text-align: center;
+            background: var(--header-gradient);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.8em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .visualization-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 968px) {
+            .visualization-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sketch-panel {
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sketch-panel h3 {
+            text-align: center;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            margin: 0;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .controls {
+            background: var(--control-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .controls h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-size: 1.5em;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-group h4 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .matrix-controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .matrix-input {
+            text-align: center;
+        }
+
+        .matrix-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .matrix-input input {
+            width: 80px;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .matrix-input input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .slider-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 16px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #95a5a6;
+        }
+
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .explanation {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin: 25px 0;
+        }
+
+        .explanation h3 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .explanation p {
+            margin-bottom: 15px;
+        }
+
+        .explanation ul, .explanation ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .explanation li {
+            margin-bottom: 8px;
+        }
+
+        .math-equation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .info-panel {
+            background: #e8f5e9;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #bdc3c7;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: var(--text-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #95a5a6;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .matrix-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-button {
+                width: 90%;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">特征值与特征向量</a>
+            <a href="determinants.html" class="nav-button">行列式几何</a>
+            <a href="svd.html" class="nav-button">奇异值分解</a>
+            <a href="linear_transformations.html" class="nav-button">线性变换</a>
+            <a href="qr.html" class="nav-button">QR分解</a>
+            <a href="lu.html" class="nav-button active">LU分解</a>
+            <a href="fourier.html" class="nav-button">傅里叶变换</a>
+            <a href="gradient_descent.html" class="nav-button">梯度下降</a>
+            <a href="probability.html" class="nav-button">概率分布</a>
+            <a href="differential_equations.html" class="nav-button">微分方程</a>
+        </div>
+    </nav>
+
+    <header>
+        <h1>LU分解</h1>
+        <p class="subtitle">探索矩阵的三角分解及其在解线性方程组中的应用</p>
+    </header>
+    
+    <main>
+        <div class="tab-container">
+            <button class="tab active" id="decompositionTab">分解过程</button>
+            <button class="tab" id="eliminationTab">高斯消元</button>
+            <button class="tab" id="applicationsTab">应用场景</button>
+        </div>
+        
+        <div class="visualization-container">
+            <div class="sketch-panel">
+                <h3>LU分解可视化</h3>
+                <div id="lu-space"></div>
+            </div>
+            <div class="sketch-panel">
+                <h3>高斯消元过程</h3>
+                <div id="elimination-space"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>矩阵参数控制</h3>
+            
+            <div class="control-grid">
+                <div class="control-group">
+                    <h4>矩阵 A</h4>
+                    
+                    <div class="matrix-controls">
+                        <div class="matrix-input">
+                            <label>a₁₁</label>
+                            <input type="number" id="a11" value="2" step="0.1">
+                        </div>
+                        <div class="matrix-input">
+                            <label>a₁₂</label>
+                            <input type="number" id="a12" value="1" step="0.1">
+                        </div>
+                        <div class="matrix-input">
+                            <label>a₂₁</label>
+                            <input type="number" id="a21" value="1" step="0.1">
+                        </div>
+                        <div class="matrix-input">
+                            <label>a₂₂</label>
+                            <input type="number" id="a22" value="3" step="0.1">
+                        </div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>矩阵范数缩放: 
+                            <span class="slider-value" id="matrixScaleValue">1.00</span>
+                        </label>
+                        <input type="range" id="matrixScale" min="0.1" max="2.0" step="0.05" value="1.0">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>预设矩阵</h4>
+                    
+                    <div class="slider-container">
+                        <label>选择预设: 
+                            <select id="presetMatrix">
+                                <option value="identity">单位矩阵</option>
+                                <option value="diagonal">对角矩阵</option>
+                                <option value="triangular">三角矩阵</option>
+                                <option value="symmetric">对称矩阵</option>
+                                <option value="wellConditioned">良态矩阵</option>
+                                <option value="illConditioned">病态矩阵</option>
+                                <option value="custom">自定义</option>
+                            </select>
+                        </label>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>消元步骤: 
+                            <span class="slider-value" id="eliminationStepValue">0</span>
+                        </label>
+                        <input type="range" id="eliminationStep" min="0" max="2" step="1" value="0">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>分解动画进度: 
+                            <span class="slider-value" id="animationValue">0%</span>
+                        </label>
+                        <input type="range" id="animation" min="0" max="100" step="1" value="0">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <strong>LU分解信息:</strong>
+                <span id="luInfo">计算中...</span>
+            </div>
+            
+            <div class="button-group">
+                <button id="animateButton">播放分解动画</button>
+                <button id="resetButton" class="secondary">重置</button>
+                <button id="stepButton" class="secondary">下一步</button>
+                <button id="verifyButton" class="secondary">验证分解</button>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <div id="decompositionExplanation">
+                <h3>LU分解原理</h3>
+                <p>LU分解是将一个矩阵分解为一个下三角矩阵L和一个上三角矩阵U的乘积：</p>
+                
+                <div class="math-equation">
+                    A = L U
+                </div>
+                
+                <p><strong>其中：</strong></p>
+                <ul>
+                    <li><strong>L</strong>：下三角矩阵，对角线元素为1，下三角部分非零</li>
+                    <li><strong>U</strong>：上三角矩阵，上三角部分非零</li>
+                </ul>
+                
+                <p><strong>分解过程：</strong></p>
+                <p>LU分解通过高斯消元法实现：</p>
+                <ol>
+                    <li>通过行初等变换将A化为上三角矩阵U</li>
+                    <li>记录消元过程中使用的乘子，构造下三角矩阵L</li>
+                    <li>L的对角线元素为1，其他元素为消元乘子</li>
+                </ol>
+                
+                <p><strong>2x2矩阵的LU分解：</strong></p>
+                <div class="math-equation">
+                    A = [a₁₁ a₁₂; a₂₁ a₂₂] = [1 0; l₂₁ 1] [u₁₁ u₁₂; 0 u₂₂]
+                </div>
+                
+                <p>其中：</p>
+                <div class="math-equation">
+                    u₁₁ = a₁₁, u₁₂ = a₁₂, l₂₁ = a₂₁/a₁₁, u₂₂ = a₂₂ - l₂₁·a₁₂
+                </div>
+                
+                <div class="info-panel">
+                    <strong>关键性质：</strong> 并非所有矩阵都有LU分解，但当矩阵的所有顺序主子式都不为零时，LU分解存在且唯一。
+                </div>
+            </div>
+            
+            <div id="eliminationExplanation" style="display:none">
+                <h3>高斯消元过程</h3>
+                <p>高斯消元法是LU分解的核心算法，它通过行变换将矩阵化为上三角形式：</p>
+                
+                <p><strong>消元步骤：</strong></p>
+                <ol>
+                    <li>第一步消元：
+                        <ul>
+                            <li>选择主元（通常是第一行第一列元素）</li>
+                            <li>计算乘子：l₂₁ = a₂₁ / a₁₁</li>
+                            <li>从第二行减去第一行乘以l₂₁</li>
+                            <li>得到新的第二行：[0, a₂₂ - l₂₁·a₁₂]</li>
+                        </ul>
+                    </li>
+                    <li>对于更大矩阵，重复此过程直到所有对角线以下元素为零</li>
+                </ol>
+                
+                <p><strong>矩阵形式：</strong></p>
+                <p>高斯消元可以用初等矩阵的乘积表示：</p>
+                <div class="math-equation">
+                    E₂₁ A = U
+                </div>
+                
+                <p>其中E₂₁是消元矩阵：</p>
+                <div class="math-equation">
+                    E₂₁ = [1 0; -l₂₁ 1]
+                </div>
+                
+                <p>由于L = E₂₁⁻¹，我们有：</p>
+                <div class="math-equation">
+                    A = L U = [1 0; l₂₁ 1] [u₁₁ u₁₂; 0 u₂₂]
+                </div>
+                
+                <p><strong>数值稳定性：</strong></p>
+                <p>当主元很小或为零时，高斯消元可能不稳定。部分主元法通过行交换解决这个问题，得到PA = LU分解。</p>
+                
+                <div class="info-panel">
+                    <strong>提示：</strong> 请你观察高斯消元过程中矩阵元素如何变化，并注意乘子和消元后的零元素位置。
+                </div>
+            </div>
+            
+            <div id="applicationsExplanation" style="display:none">
+                <h3>LU分解的应用场景</h3>
+                <p>LU分解在科学计算和工程中具有广泛的应用：</p>
+                
+                <p><strong>1. 线性方程组求解：</strong></p>
+                <ul>
+                    <li>将Ax = b分解为Ly = b和Ux = y</li>
+                    <li>先解Ly = b（前向代入）</li>
+                    <li>再解Ux = y（回代）</li>
+                    <li>比直接求解Ax = b更高效，特别是对于多个右端项</li>
+                </ul>
+                
+                <p><strong>2. 矩阵求逆：</strong></p>
+                <ul>
+                    <li>A⁻¹ = U⁻¹L⁻¹</li>
+                    <li>三角矩阵的逆更容易计算</li>
+                    <li>比直接求逆更稳定和高效</li>
+                </ul>
+                
+                <p><strong>3. 行列式计算：</strong></p>
+                <ul>
+                    <li>det(A) = det(L)det(U) = 1·(u₁₁·u₂₂·...·uₙₙ)</li>
+                    <li>三角矩阵的行列式等于对角线元素的乘积</li>
+                    <li>计算复杂度从O(n!)降低到O(n³)</li>
+                </ul>
+                
+                <p><strong>4. 数值线性代数：</strong></p>
+                <ul>
+                    <li>许多数值算法的基础，如迭代法求解器</li>
+                    <li>在有限元分析、计算流体动力学中广泛应用</li>
+                    <li>为其他矩阵分解（如Cholesky分解）提供基础</li>
+                </ul>
+                
+                <p><strong>5. 计算机科学：</strong></p>
+                <ul>
+                    <li>在计算机图形学中用于变换计算</li>
+                    <li>在机器学习中用于求解正规方程</li>
+                    <li>在电路分析中用于节点电压法</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>实际意义：</strong> LU分解是数值线性代数中最基本和最重要的分解之一，
+                    它为许多科学计算问题提供了高效稳定的解决方案。
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- LU分解可视化代码 -->
+    <script>
+        // =============================================================================
+        // LU分解模块
+        // 作者: MathScape
+        // 描述: LU分解的算法过程
+        // =============================================================================
+
+        // =============================================
+        // 模块一: 全局常量与变量定义
+        // =============================================
+
+        /** 可视化状态枚举 */
+        const VisualizationState = {
+            STATIC: 'static',
+            ANIMATING: 'animating',
+            INTERACTIVE: 'interactive'
+        };
+
+        /** 标签页类型枚举 */
+        const TabType = {
+            DECOMPOSITION: 'decomposition',
+            ELIMINATION: 'elimination',
+            APPLICATIONS: 'applications'
+        };
+
+        /** 预设矩阵类型枚举 */
+        const PresetType = {
+            IDENTITY: 'identity',
+            DIAGONAL: 'diagonal',
+            TRIANGULAR: 'triangular',
+            SYMMETRIC: 'symmetric',
+            WELL_CONDITIONED: 'wellConditioned',
+            ILL_CONDITIONED: 'illConditioned',
+            CUSTOM: 'custom'
+        };
+
+        /** 可视化配置常量 */
+        const VISUAL_CONFIG = {
+            CANVAS_WIDTH: 400,
+            CANVAS_HEIGHT: 400,
+            ANIMATION_DURATION: 3000,    // 动画时长(ms)
+            GRID_SIZE: 50,               // 网格大小
+            MATRIX_COLORS: [
+                [30, 144, 255],   // 原始矩阵颜色
+                [50, 205, 50],    // L矩阵颜色
+                [255, 140, 0],    // U矩阵颜色
+                [148, 0, 211]     // 消元过程颜色
+            ],
+            GRID_COLOR: [200, 200, 200, 50],          // 网格颜色
+            ZERO_COLOR: [200, 200, 200, 100]          // 零元素颜色
+        };
+
+        // =============================================
+        // 模块二: 数学核心类
+        // =============================================
+
+        /** 2x2矩阵类 */
+        class Matrix2x2 {
+            constructor(a11 = 1, a12 = 0, a21 = 0, a22 = 1) {
+                this.a11 = a11;
+                this.a12 = a12;
+                this.a21 = a21;
+                this.a22 = a22;
+            }
+
+            multiplyVector(vector) {
+                return {
+                    x: this.a11 * vector.x + this.a12 * vector.y,
+                    y: this.a21 * vector.x + this.a22 * vector.y
+                };
+            }
+
+            multiplyMatrix(other) {
+                return new Matrix2x2(
+                    this.a11 * other.a11 + this.a12 * other.a21,
+                    this.a11 * other.a12 + this.a12 * other.a22,
+                    this.a21 * other.a11 + this.a22 * other.a21,
+                    this.a21 * other.a12 + this.a22 * other.a22
+                );
+            }
+
+            transpose() {
+                return new Matrix2x2(
+                    this.a11, this.a21,
+                    this.a12, this.a22
+                );
+            }
+
+            determinant() {
+                return this.a11 * this.a22 - this.a12 * this.a21;
+            }
+
+            isLowerTriangular() {
+                return Math.abs(this.a12) < 1e-10;
+            }
+
+            isUpperTriangular() {
+                return Math.abs(this.a21) < 1e-10;
+            }
+
+            static identity() {
+                return new Matrix2x2(1, 0, 0, 1);
+            }
+
+            static diagonal(d1, d2) {
+                return new Matrix2x2(d1, 0, 0, d2);
+            }
+
+            static symmetric(a11, a12, a22) {
+                return new Matrix2x2(a11, a12, a12, a22);
+            }
+        }
+
+        /** LU分解结果类 */
+        class LUResult {
+            constructor(L, U) {
+                this.L = L;  // 下三角矩阵
+                this.U = U;  // 上三角矩阵
+            }
+
+            /**
+             * 重构原始矩阵
+             * @returns {Matrix2x2} 重构的矩阵 A = L U
+             */
+            reconstruct() {
+                return this.L.multiplyMatrix(this.U);
+            }
+
+            /**
+             * 验证LU分解的正确性
+             * @returns {boolean} 分解是否正确
+             */
+            verify() {
+                const reconstructed = this.reconstruct();
+                return Math.abs(reconstructed.a11 - this.originalA.a11) < 1e-10 &&
+                       Math.abs(reconstructed.a12 - this.originalA.a12) < 1e-10 &&
+                       Math.abs(reconstructed.a21 - this.originalA.a21) < 1e-10 &&
+                       Math.abs(reconstructed.a22 - this.originalA.a22) < 1e-10;
+            }
+        }
+
+        // =============================================
+        // 模块三: LU分解算法
+        // =============================================
+
+        /** LU分解计算器类 */
+        class LUCalculator {
+            /**
+             * 计算2x2矩阵的LU分解
+             * @param {Matrix2x2} A - 输入矩阵
+             * @returns {LUResult} LU分解结果
+             */
+            static computeLU2x2(A) {
+                // 检查是否可进行LU分解
+                if (Math.abs(A.a11) < 1e-10) {
+                    throw new Error("矩阵不可进行LU分解（主元为零）");
+                }
+                
+                // 计算乘子
+                const l21 = A.a21 / A.a11;
+                
+                // 构造L和U矩阵
+                const L = new Matrix2x2(1, 0, l21, 1);
+                const U = new Matrix2x2(A.a11, A.a12, 0, A.a22 - l21 * A.a12);
+                
+                const result = new LUResult(L, U);
+                result.originalA = A; // 保存原始矩阵用于验证
+                
+                return result;
+            }
+
+            /**
+             * 获取高斯消元过程的中间步骤
+             * @param {Matrix2x2} A - 输入矩阵
+             * @returns {Object} 中间步骤数据
+             */
+            static getEliminationSteps(A) {
+                // 步骤0: 初始矩阵
+                const step0 = {
+                    matrix: new Matrix2x2(A.a11, A.a12, A.a21, A.a22),
+                    multiplier: 0,
+                    description: "初始矩阵"
+                };
+                
+                // 步骤1: 计算乘子
+                const l21 = A.a21 / A.a11;
+                const step1 = {
+                    matrix: new Matrix2x2(A.a11, A.a12, A.a21, A.a22),
+                    multiplier: l21,
+                    description: `计算乘子 l₂₁ = ${l21.toFixed(2)}`
+                };
+                
+                // 步骤2: 执行消元
+                const step2 = {
+                    matrix: new Matrix2x2(A.a11, A.a12, 0, A.a22 - l21 * A.a12),
+                    multiplier: l21,
+                    description: "执行消元：第二行减去第一行乘以l₂₁"
+                };
+                
+                return [step0, step1, step2];
+            }
+        }
+
+        // =============================================
+        // 模块四: 可视化系统类
+        // =============================================
+
+        /** LU分解可视化系统 */
+        class LUVisualization {
+            constructor() {
+                // 变换矩阵
+                this.matrix = new Matrix2x2(2, 1, 1, 3);
+                
+                // LU分解结果
+                this.lu = null;
+                this.computeLU();
+                
+                // 高斯消元步骤
+                this.eliminationSteps = LUCalculator.getEliminationSteps(this.matrix);
+                this.currentStep = 0;
+                
+                // 动画状态
+                this.animationProgress = 0;
+                this.animationStartTime = 0;
+                this.state = VisualizationState.STATIC;
+                
+                // 显示设置
+                this.showGrid = true;
+                this.currentTab = TabType.DECOMPOSITION;
+            }
+
+            /**
+             * 计算LU分解
+             */
+            computeLU() {
+                try {
+                    this.lu = LUCalculator.computeLU2x2(this.matrix);
+                } catch (error) {
+                    console.error("LU分解失败:", error.message);
+                    this.lu = null;
+                }
+            }
+
+            /**
+             * 应用预设矩阵
+             * @param {string} preset - 预设类型
+             */
+            applyPreset(preset) {
+                switch (preset) {
+                    case PresetType.IDENTITY:
+                        this.matrix = new Matrix2x2(1, 0, 0, 1);
+                        break;
+                    case PresetType.DIAGONAL:
+                        this.matrix = new Matrix2x2(2, 0, 0, 3);
+                        break;
+                    case PresetType.TRIANGULAR:
+                        this.matrix = new Matrix2x2(2, 1, 0, 3);
+                        break;
+                    case PresetType.SYMMETRIC:
+                        this.matrix = new Matrix2x2(2, 1, 1, 3);
+                        break;
+                    case PresetType.WELL_CONDITIONED:
+                        this.matrix = new Matrix2x2(2, 1, 1, 3);
+                        break;
+                    case PresetType.ILL_CONDITIONED:
+                        this.matrix = new Matrix2x2(1, 1, 1, 1.0001);
+                        break;
+                    case PresetType.CUSTOM:
+                        // 保持当前矩阵
+                        break;
+                }
+                
+                this.computeLU();
+                this.eliminationSteps = LUCalculator.getEliminationSteps(this.matrix);
+                this.currentStep = 0;
+            }
+
+            /**
+             * 更新矩阵元素
+             * @param {number} a11 - 元素11
+             * @param {number} a12 - 元素12
+             * @param {number} a21 - 元素21
+             * @param {number} a22 - 元素22
+             */
+            updateMatrix(a11, a12, a21, a22) {
+                this.matrix = new Matrix2x2(a11, a12, a21, a22);
+                this.computeLU();
+                this.eliminationSteps = LUCalculator.getEliminationSteps(this.matrix);
+                this.currentStep = 0;
+            }
+
+            /**
+             * 设置消元步骤
+             * @param {number} step - 步骤索引
+             */
+            setEliminationStep(step) {
+                this.currentStep = Math.max(0, Math.min(step, this.eliminationSteps.length - 1));
+            }
+
+            /**
+             * 下一步消元
+             */
+            nextStep() {
+                if (this.currentStep < this.eliminationSteps.length - 1) {
+                    this.currentStep++;
+                }
+            }
+
+            /**
+             * 开始动画
+             */
+            startAnimation() {
+                this.animationProgress = 0;
+                this.animationStartTime = Date.now();
+                this.state = VisualizationState.ANIMATING;
+            }
+
+            /**
+             * 更新动画状态
+             */
+            updateAnimation() {
+                if (this.state !== VisualizationState.ANIMATING) return;
+                
+                const elapsed = Date.now() - this.animationStartTime;
+                this.animationProgress = Math.min(elapsed / VISUAL_CONFIG.ANIMATION_DURATION, 1);
+                
+                if (this.animationProgress >= 1) {
+                    this.state = VisualizationState.STATIC;
+                }
+            }
+        }
+
+        /** LU分解可视化渲染器 */
+        class LURenderer {
+            constructor() {
+                this.system = new LUVisualization();
+            }
+
+            /**
+             * 绘制LU分解空间
+             * @param {p5} p - p5.js实例
+             */
+            drawLUSpace(p) {
+                // 每帧推进动画
+                this.system.updateAnimation();
+
+                p.background(250);
+                p.translate(VISUAL_CONFIG.CANVAS_WIDTH / 2, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+
+                // 整体加大水平间距
+                const AX = -180; // 原 -150
+                const UX_TARGET = 180; // 原 150
+                const LX_TARGET = 0;
+
+                // 进度（0→1）
+                const t = this.system.animationProgress || 0;
+
+                // 让 L 从左侧滑入，U 从右侧滑入
+                const LX = LX_TARGET - 60 * (1 - t); // t=0 时 L 在 -60，t=1 时回到 0
+                const UX = UX_TARGET + 60 * (1 - t); // t=0 时 U 在 240，t=1 时回到 180
+
+                // 绘制 A
+                this.drawMatrix(p, this.system.matrix, "A", AX, 0, VISUAL_CONFIG.MATRIX_COLORS[0]);
+
+                // 避免贴近
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.CENTER, p.CENTER);
+                p.textSize(24);
+                p.text("=", -90, 0); // 原 -50
+
+                if (this.system.lu) {
+                    // 绘制 L（带位移插值）
+                    this.drawMatrix(p, this.system.lu.L, "L", LX, 0, VISUAL_CONFIG.MATRIX_COLORS[1]);
+
+                    // 绘制乘号（固定位置）
+                    p.text("×", 100, 0);
+
+                    // 绘制 U（带位移插值）
+                    this.drawMatrix(p, this.system.lu.U, "U", UX, 0, VISUAL_CONFIG.MATRIX_COLORS[2]);
+                } else {
+                    p.fill(255, 0, 0);
+                    p.text("LU分解不可行", 110, 0); // 稍右移，留空间
+                }
+
+                this.drawLUInfo(p);
+            }
+
+            /**
+             * 绘制高斯消元空间
+             * @param {p5} p - p5.js实例
+             */
+            drawEliminationSpace(p) {
+                p.background(250);
+                p.translate(VISUAL_CONFIG.CANVAS_WIDTH / 2, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+
+                const step = this.system.eliminationSteps[this.system.currentStep];
+                if (!step) return;
+
+                // 预留文字空间
+                this.drawMatrix(p, step.matrix, "当前矩阵", 0, -70, VISUAL_CONFIG.MATRIX_COLORS[3]); // 原 -50
+
+                // 避免拥挤
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.CENTER, p.CENTER);
+                p.textSize(16);
+
+                if (step.multiplier !== 0) {
+                    p.text(`乘子 l₂₁ = ${step.multiplier.toFixed(2)}`, 0, 80); // 原 50
+                }
+
+                p.text(step.description, 0, 105); // 原 80
+                p.text(`步骤 ${this.system.currentStep + 1}/${this.system.eliminationSteps.length}`, 0, 130); // 原 110
+            }
+
+            /**
+             * 绘制矩阵
+             * @param {p5} p - p5.js实例
+             */
+            drawMatrix(p, matrix, label, x, y, color) {
+                const cellSize = 40;
+                const labelOffset = 44;
+
+                // 矩阵标签
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.CENTER, p.CENTER);
+                p.textSize(16);
+                p.text(label, x, y - labelOffset);
+
+                // 矩阵边框
+                p.stroke(0);
+                p.strokeWeight(2);
+                p.noFill();
+                p.rect(x - cellSize, y - cellSize, 2 * cellSize, 2 * cellSize);
+
+                // 内部线条
+                p.stroke(0);
+                p.strokeWeight(1);
+                p.line(x, y - cellSize, x, y + cellSize);
+                p.line(x - cellSize, y, x + cellSize, y);
+
+                // 统一元素绘制：用 drawEntry 避免 0 重叠
+                p.noStroke();
+                p.textAlign(p.CENTER, p.CENTER);
+                p.textSize(14);
+
+                this.drawEntry(p, matrix.a11, x - cellSize/2, y - cellSize/2);
+                this.drawEntry(p, matrix.a12, x + cellSize/2, y - cellSize/2);
+                this.drawEntry(p, matrix.a21, x - cellSize/2, y + cellSize/2);
+                this.drawEntry(p, matrix.a22, x + cellSize/2, y + cellSize/2);
+            }
+
+            drawEntry(p, val, x, y) {
+                const EPS = 1e-10;
+                if (Math.abs(val) < EPS) {
+                    // 只绘制一个黑色“0”
+                    p.fill(0);
+                    p.text("0", x, y);
+                } else {
+                    // 正常数值统一黑色，避免色块拥挤
+                    p.fill(0);
+                    p.text(val.toFixed(2), x, y);
+                }
+            }
+
+            /**
+             * 显示LU信息
+             * @param {p5} p - p5.js实例
+             */
+            drawLUInfo(p) {
+                p.push();
+                p.resetMatrix();
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.LEFT, p.TOP);
+                p.textSize(12);
+                
+                p.text("LU分解可视化", 20, 20);
+                
+                if (this.system.lu) {
+                    const L = this.system.lu.L;
+                    const U = this.system.lu.U;
+                    
+                    p.text(`L = [${L.a11.toFixed(2)}, ${L.a12.toFixed(2)}]`, 20, 50);
+                    p.text(`    [${L.a21.toFixed(2)}, ${L.a22.toFixed(2)}]`, 20, 70);
+                    
+                    p.text(`U = [${U.a11.toFixed(2)}, ${U.a12.toFixed(2)}]`, 20, 100);
+                    p.text(`    [${U.a21.toFixed(2)}, ${U.a22.toFixed(2)}]`, 20, 120);
+                    
+                    const isCorrect = this.system.lu.verify();
+                    p.text(`LU分解验证: ${isCorrect ? "正确" : "错误"}`, 20, 150);
+                    
+                    const detA = this.system.matrix.determinant();
+                    const detL = L.determinant();
+                    const detU = U.determinant();
+                    p.text(`行列式: det(A) = ${detA.toFixed(2)}, det(L)det(U) = ${(detL * detU).toFixed(2)}`, 20, 170);
+                } else {
+                    p.fill(255, 0, 0);
+                    p.text("LU分解不可行（主元为零）", 20, 50);
+                }
+                
+                p.pop();
+            }
+
+            /**
+             * 更新显示的LU信息
+             */
+            updateLUInfo() {
+                const lu = this.system.lu;
+                
+                if (!lu) {
+                    document.getElementById('luInfo').textContent = "LU分解不可行（主元为零）";
+                    return;
+                }
+                
+                const isCorrect = lu.verify();
+                const detA = this.system.matrix.determinant();
+                const detL = lu.L.determinant();
+                const detU = lu.U.determinant();
+                
+                const infoText = `分解验证: ${isCorrect ? "正确" : "错误"} | 行列式: ${detA.toFixed(2)} = ${(detL * detU).toFixed(2)}`;
+                document.getElementById('luInfo').textContent = infoText;
+            }
+        }
+
+        // =============================================
+        // 模块五: 全局实例与初始化
+        // =============================================
+
+        /** 全局可视化渲染器实例 */
+        let luVisualizer;
+
+        // =============================================
+        // 模块六: p5.js 画布管理
+        // =============================================
+
+        /**
+         * LU空间画布的p5.js实例
+         */
+        let luSpaceSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(400, 400);
+                canvas.parent('lu-space');
+            };
+
+            p.draw = function() {
+                if (luVisualizer) {
+                    luVisualizer.drawLUSpace(p);
+                }
+            };
+        };
+
+        /**
+         * 消元空间画布的p5.js实例
+         */
+        let eliminationSpaceSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(400, 400);
+                canvas.parent('elimination-space');
+            };
+
+            p.draw = function() {
+                if (luVisualizer) {
+                    luVisualizer.drawEliminationSpace(p);
+                }
+            };
+        };
+
+        // =============================================
+        // 模块七: 初始化函数
+        // =============================================
+
+        /**
+         * 页面加载初始化
+         */
+        function initializePage() {
+            luVisualizer = new LURenderer();
+            
+            // 创建p5.js实例
+            new p5(luSpaceSketch);
+            new p5(eliminationSpaceSketch);
+            
+            // 初始化显示
+            updateMatrixInputs();
+            luVisualizer.updateLUInfo();
+            
+            // 绑定事件监听器
+            bindEventListeners();
+        }
+
+        // =============================================
+        // 模块八: 用户界面控制函数
+        // =============================================
+
+        /**
+         * 绑定所有事件监听器
+         */
+        function bindEventListeners() {
+            // 矩阵输入框
+            document.getElementById('a11').addEventListener('input', updateMatrix);
+            document.getElementById('a12').addEventListener('input', updateMatrix);
+            document.getElementById('a21').addEventListener('input', updateMatrix);
+            document.getElementById('a22').addEventListener('input', updateMatrix);
+            
+            // 滑块
+            document.getElementById('matrixScale').addEventListener('input', updateMatrixScale);
+            document.getElementById('eliminationStep').addEventListener('input', updateEliminationStep);
+            document.getElementById('animation').addEventListener('input', updateAnimation);
+            
+            // 下拉菜单
+            document.getElementById('presetMatrix').addEventListener('change', applyPreset);
+            
+            // 按钮
+            document.getElementById('animateButton').addEventListener('click', animateDecomposition);
+            document.getElementById('resetButton').addEventListener('click', resetVisualization);
+            document.getElementById('stepButton').addEventListener('click', nextStep);
+            document.getElementById('verifyButton').addEventListener('click', verifyDecomposition);
+            
+            // 标签页
+            document.getElementById('decompositionTab').addEventListener('click', () => switchTab('decomposition'));
+            document.getElementById('eliminationTab').addEventListener('click', () => switchTab('elimination'));
+            document.getElementById('applicationsTab').addEventListener('click', () => switchTab('applications'));
+        }
+
+        /**
+         * 切换标签页
+         * @param {string} tabName - 标签页名称
+         */
+        function switchTab(tabName) {
+            // 更新标签激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 激活当前标签
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // 更新可视化标签页
+            if (luVisualizer) {
+                luVisualizer.system.currentTab = tabName;
+            }
+            
+            // 更新说明显示
+            document.querySelectorAll('.explanation > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.getElementById(tabName + 'Explanation').style.display = 'block';
+        }
+
+        /**
+         * 更新矩阵参数
+         */
+        function updateMatrix() {
+            if (!luVisualizer) return;
+            
+            const a11 = parseFloat(document.getElementById('a11').value);
+            const a12 = parseFloat(document.getElementById('a12').value);
+            const a21 = parseFloat(document.getElementById('a21').value);
+            const a22 = parseFloat(document.getElementById('a22').value);
+            
+            luVisualizer.system.updateMatrix(a11, a12, a21, a22);
+            luVisualizer.updateLUInfo();
+        }
+
+        /**
+         * 更新矩阵缩放
+         */
+        function updateMatrixScale() {
+            const scale = parseFloat(document.getElementById('matrixScale').value);
+            document.getElementById('matrixScaleValue').textContent = scale.toFixed(2);
+            
+            // 这里可以添加矩阵缩放逻辑
+        }
+
+        /**
+         * 应用预设矩阵
+         */
+        function applyPreset() {
+            if (!luVisualizer) return;
+            
+            const preset = document.getElementById('presetMatrix').value;
+            luVisualizer.system.applyPreset(preset);
+            luVisualizer.updateLUInfo();
+            
+            // 更新矩阵输入框显示
+            updateMatrixInputs();
+        }
+
+        /**
+         * 更新矩阵输入框显示
+         */
+        function updateMatrixInputs() {
+            if (!luVisualizer) return;
+            
+            const matrix = luVisualizer.system.matrix;
+            document.getElementById('a11').value = matrix.a11;
+            document.getElementById('a12').value = matrix.a12;
+            document.getElementById('a21').value = matrix.a21;
+            document.getElementById('a22').value = matrix.a22;
+        }
+
+        /**
+         * 更新消元步骤
+         */
+        function updateEliminationStep() {
+            const step = parseInt(document.getElementById('eliminationStep').value);
+            document.getElementById('eliminationStepValue').textContent = step;
+            
+            if (luVisualizer) {
+                luVisualizer.system.setEliminationStep(step);
+            }
+        }
+
+        /**
+         * 更新动画进度
+         */
+        function updateAnimation() {
+            const progress = parseInt(document.getElementById('animation').value);
+            document.getElementById('animationValue').textContent = progress + '%';
+
+            if (luVisualizer) {
+                // 把滑块值转为 0~1 的进度，直接驱动动画显示
+                luVisualizer.system.animationProgress = Math.max(0, Math.min(progress / 100, 1));
+                // 当用滑块驱动时，保持静止状态，避免和自动计时竞争
+                luVisualizer.system.state = VisualizationState.STATIC;
+            }
+        }
+
+        /**
+         * 播放分解动画
+         */
+        function animateDecomposition() {
+            if (luVisualizer) {
+                luVisualizer.system.startAnimation();
+            }
+        }
+
+        /**
+         * 重置可视化
+         */
+        function resetVisualization() {
+            if (luVisualizer) {
+                luVisualizer.system.updateMatrix(2, 1, 1, 3);
+                luVisualizer.updateLUInfo();
+                updateMatrixInputs();
+                document.getElementById('eliminationStep').value = 0;
+                document.getElementById('eliminationStepValue').textContent = '0';
+                luVisualizer.system.setEliminationStep(0);
+            }
+        }
+
+        /**
+         * 下一步消元
+         */
+        function nextStep() {
+            if (luVisualizer) {
+                luVisualizer.system.nextStep();
+                const step = luVisualizer.system.currentStep;
+                document.getElementById('eliminationStep').value = step;
+                document.getElementById('eliminationStepValue').textContent = step;
+            }
+        }
+
+        /**
+         * 验证分解
+         */
+        function verifyDecomposition() {
+            if (!luVisualizer || !luVisualizer.system.lu) return;
+            
+            const isCorrect = luVisualizer.system.lu.verify();
+            alert(`LU分解验证: ${isCorrect ? "正确" : "错误"}`);
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>
