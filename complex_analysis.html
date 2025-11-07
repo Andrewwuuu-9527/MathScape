@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>复分析 </title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        :root {
+            --primary-color: #4caf50;
+            --primary-dark: #388e3c;
+            --secondary-color: #e8f5e9;
+            --text-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --control-bg: #e8f5e9;
+            --header-gradient: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-button:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .nav-button.active {
+            background: #3498db;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+        }
+
+        header {
+            text-align: center;
+            background: var(--header-gradient);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.8em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .visualization-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 968px) {
+            .visualization-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sketch-panel {
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sketch-panel h3 {
+            text-align: center;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            margin: 0;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .controls {
+            background: var(--control-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .controls h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-size: 1.5em;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-group h4 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .slider-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 16px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #95a5a6;
+        }
+
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .explanation {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin: 25px 0;
+        }
+
+        .explanation h3 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .explanation p {
+            margin-bottom: 15px;
+        }
+
+        .explanation ul, .explanation ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .explanation li {
+            margin-bottom: 8px;
+        }
+
+        .math-equation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .info-panel {
+            background: #e8f5e9;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #bdc3c7;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: var(--text-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .function-input {
+            font-family: monospace;
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-button {
+                width: 90%;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">特征值与特征向量</a>
+            <a href="determinants.html" class="nav-button">行列式几何</a>
+            <a href="svd.html" class="nav-button">奇异值分解</a>
+            <a href="linear_transformations.html" class="nav-button">线性变换</a>
+            <a href="qr.html" class="nav-button">QR分解</a>
+            <a href="lu.html" class="nav-button">LU分解</a>
+            <a href="fourier.html" class="nav-button">傅里叶变换</a>
+            <a href="gradient_descent.html" class="nav-button">梯度下降</a>
+            <a href="probability.html" class="nav-button">概率分布</a>
+            <a href="differential_equations.html" class="nav-button">微分方程</a>
+            <a href="complex_analysis.html" class="nav-button active">复分析</a>
+            <a href="topology.html" class="nav-button">拓扑学</a>
+        </div>
+    </nav>
+
+    <header>
+        <h1>复分析</h1>
+        <p class="subtitle">探索复变函数的几何变换与共形映射</p>
+    </header>
+    
+    <main>
+        <div class="tab-container">
+            <button class="tab active" id="gridTab">网格映射</button>
+            <button class="tab" id="domainTab">域着色</button>
+            <button class="tab" id="vectorTab">向量场</button>
+            <button class="tab" id="theoryTab">复分析理论</button>
+        </div>
+        
+        <div class="visualization-container">
+            <div class="sketch-panel">
+                <h3>z-平面 (输入)</h3>
+                <div id="z-plane-canvas"></div>
+            </div>
+            <div class="sketch-panel">
+                <h3>w-平面 (输出) w = f(z)</h3>
+                <div id="w-plane-canvas"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>复函数参数控制</h3>
+            
+            <div class="control-grid">
+                <div class="control-group">
+                    <h4>预置函数</h4>
+                    
+                    <div class="slider-container">
+                        <label>选择函数: 
+                            <select id="function-select">
+                                <option value="z">恒等函数 f(z) = z</option>
+                                <option value="z^2">平方函数 f(z) = z²</option>
+                                <option value="1/z">倒数函数 f(z) = 1/z</option>
+                                <option value="exp(z)">指数函数 f(z) = exp(z)</option>
+                                <option value="sin(z)">正弦函数 f(z) = sin(z)</option>
+                                <option value="cos(z)">余弦函数 f(z) = cos(z)</option>
+                                <option value="log(z)">对数函数 f(z) = log(z)</option>
+                                <option value="custom">自定义函数</option>
+                            </select>
+                        </label>
+                    </div>
+                    
+                    <div class="slider-container" id="custom-function-group" style="display:none;">
+                        <label>自定义函数 (使用JavaScript语法，变量为z)</label>
+                        <input type="text" id="custom-function" class="function-input" placeholder="例如：z.mult(z).add(new Complex(1,0))">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>模式: 
+                            <select id="visualization-mode">
+                                <option value="grid">网格映射</option>
+                                <option value="domain_coloring">域着色</option>
+                                <option value="vector_field">向量场</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>参数</h4>
+                    
+                    <div class="slider-container">
+                        <label>网格密度: 
+                            <span class="slider-value" id="gridDensityValue">15</span>
+                        </label>
+                        <input type="range" id="grid-density" min="5" max="30" step="1" value="15">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>显示范围: 
+                            <span class="slider-value" id="rangeValue">2.0</span>
+                        </label>
+                        <input type="range" id="range" min="1" max="5" step="0.1" value="2.0">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>动画参数: 
+                            <span class="slider-value" id="animationParamValue">0.0</span>
+                        </label>
+                        <input type="range" id="animation-param" min="0" max="100" step="1" value="0">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <strong>当前函数信息:</strong>
+                <span id="function-info">恒等函数 f(z) = z</span>
+            </div>
+            
+            <div class="button-group">
+                <button id="animateButton">播放变换动画</button>
+                <button id="resetButton" class="secondary">重置视图</button>
+                <button id="randomButton" class="secondary">随机函数</button>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <div id="gridExplanation">
+                <h3>网格映射</h3>
+                <p>网格映射是理解复变函数几何行为的最直观方法。我们通过在z-平面上绘制规则的网格，然后观察这个网格在函数f作用下的变换。</p>
+                
+                <div class="math-equation">
+                    w = f(z) = f(x + iy) = u(x,y) + iv(x,y)
+                </div>
+                
+                <p><strong>几何解释：</strong></p>
+                <ul>
+                    <li><strong>保角性</strong>：解析函数在非临界点处保持角度不变</li>
+                    <li><strong>局部缩放</strong>：函数导数的大小表示局部缩放因子</li>
+                    <li><strong>旋转</strong>：函数导数的辐角表示局部旋转角度</li>
+                </ul>
+                
+                <p><strong>观察要点：</strong></p>
+                <ol>
+                    <li>注意网格在变换后是否保持角度（共形映射）</li>
+                    <li>观察零点、极点和奇点附近的特殊行为</li>
+                    <li>注意网格线在变换后是否仍然正交</li>
+                </ol>
+                
+                <div class="info-panel">
+                    <strong>提示：</strong> 尝试选择不同的预置函数，观察它们对网格的变换效果。特别关注平方函数和倒数函数的独特几何性质。
+                </div>
+            </div>
+            
+            <div id="domainExplanation" style="display:none">
+                <h3>域着色</h3>
+                <p>域着色是一种强大的复变函数可视化技术，它使用颜色编码复数的不同属性：</p>
+                
+                <p><strong>颜色编码方案：</strong></p>
+                <ul>
+                    <li><strong>色相 (Hue)</strong>：表示复数的辐角（相位）</li>
+                    <li><strong>亮度 (Lightness)</strong>：表示复数的模（幅度）</li>
+                    <li><strong>饱和度 (Saturation)</strong>：通常设为固定值或表示其他属性</li>
+                </ul>
+                
+                <div class="math-equation">
+                    颜色(z) = HSL( arg(f(z))×180/π, 80%, 50%×(1 - e^(-|f(z)|/k)) )
+                </div>
+                
+                <p><strong>解读域着色图：</strong></p>
+                <ol>
+                    <li><strong>零点</strong>：所有颜色汇聚的点（模为零）</li>
+                    <li><strong>极点</strong>：所有颜色发散的点（模为无穷大）</li>
+                    <li><strong>临界点</strong>：颜色变化不连续的区域</li>
+                    <li><strong>周期性</strong>：颜色模式的重复出现</li>
+                </ol>
+                
+                <p><strong>应用价值：</strong></p>
+                <p>域着色不仅能显示函数的几何变换，还能揭示函数的分析性质，如零点分布、奇点类型和收敛区域。</p>
+                
+                <div class="info-panel">
+                    <strong>提示：</strong> 在域着色模式下，注意颜色如何围绕零点和极点旋转。每个零点周围颜色会按特定顺序循环，循环次数等于零点的重数。
+                </div>
+            </div>
+            
+            <div id="vectorExplanation" style="display:none">
+                <h3>向量场</h3>
+                <p>向量场显示复函数在每个点的导数方向和大小，帮助我们理解函数的局部行为：</p>
+                
+                <div class="math-equation">
+                    f'(z) = lim<sub>h→0</sub> [f(z+h) - f(z)] / h
+                </div>
+                
+                <p><strong>向量场解读：</strong></p>
+                <ul>
+                    <li><strong>方向</strong>：表示函数在该点的导数方向</li>
+                    <li><strong>长度</strong>：表示导数的模（缩放因子）</li>
+                    <li><strong>零点</strong>：向量长度为零的点</li>
+                    <li><strong>极点</strong>：向量长度极大的点</li>
+                </ul>
+                
+                <p><strong>几何意义：</strong></p>
+                <ol>
+                    <li>向量场显示函数在每个点的局部线性近似</li>
+                    <li>在解析函数中，向量场通常是光滑且无旋的</li>
+                    <li>零点和极点处的向量场有特殊模式</li>
+                </ol>
+                
+                <div class="info-panel">
+                    <strong>应用：</strong> 向量场在流体力学中描述流速场，在电磁学中描述电场和磁场，在复分析中帮助我们理解函数的局部性质。
+                </div>
+            </div>
+            
+            <div id="theoryExplanation" style="display:none">
+                <h3>复分析理论基础</h3>
+                <p>复分析是研究复变函数的数学分支，具有深刻的几何直观和广泛的应用。</p>
+                
+                <p><strong>核心概念：</strong></p>
+                <ul>
+                    <li><strong>解析函数</strong>：在区域内处处可导的复变函数</li>
+                    <li><strong>柯西-黎曼方程</strong>：函数解析的必要条件</li>
+                    <li><strong>共形映射</strong>：保持角度和方向的解析函数</li>
+                    <li><strong>柯西积分定理</strong>：解析函数沿闭曲线的积分为零</li>
+                </ul>
+                
+                <p><strong>重要定理：</strong></p>
+                <ol>
+                    <li><strong>柯西积分公式</strong>：用边界值表示内部值</li>
+                    <li><strong>留数定理</strong>：计算闭曲线积分的有力工具</li>
+                    <li><strong>最大模原理</strong>：解析函数的模在边界上取最大值</li>
+                    <li><strong>黎曼映射定理</strong>：任何单连通区域都可共形映射到单位圆</li>
+                </ol>
+                
+                <p><strong>应用领域：</strong></p>
+                <ul>
+                    <li><strong>流体力学</strong>：描述不可压缩无旋流动</li>
+                    <li><strong>电磁学</strong>：解决二维静电场和静磁场问题</li>
+                    <li><strong>信号处理</strong>：傅里叶分析和滤波器设计</li>
+                    <li><strong>数论</strong>：黎曼ζ函数和素数分布</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>教育价值：</strong> 复分析连接了代数、几何和分析等多个数学分支，是理解现代数学和物理学的重要桥梁。通过可视化工具，我们可以直观地理解这些抽象概念。
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+    
+    <!-- 复分析可视化代码 -->
+    <script>
+        // =============================================================================
+        // 复分析模块
+        // 作者: MathScape
+        // 描述: 复变函数的几何变换与共形映射
+        // =============================================================================
+
+        // =============================================
+        // 模块一: 全局常量与变量定义
+        // =============================================
+
+        /** 可视化状态枚举 */
+        const VisualizationState = {
+            STATIC: 'static',
+            ANIMATING: 'animating',
+            INTERACTIVE: 'interactive'
+        };
+
+        /** 标签页类型枚举 */
+        const TabType = {
+            GRID: 'grid',
+            DOMAIN: 'domain',
+            VECTOR: 'vector',
+            THEORY: 'theory'
+        };
+
+        /** 可视化模式枚举 */
+        const VizMode = {
+            GRID: 'grid',
+            DOMAIN_COLORING: 'domain_coloring',
+            VECTOR_FIELD: 'vector_field'
+        };
+
+        /** 可视化配置常量 */
+        const VISUAL_CONFIG = {
+            CANVAS_WIDTH: 400,
+            CANVAS_HEIGHT: 400,
+            ANIMATION_DURATION: 5000,
+            GRID_COLOR: [120, 120, 120],           // 改为中灰色，减少凌乱感
+            AXIS_COLOR: [80, 80, 80],              // 深灰色坐标轴
+            TEXT_COLOR: [30, 30, 30],
+            VECTOR_COLOR: [220, 50, 50],
+            VECTOR_SCALE: 0.1,
+            BACKGROUND_COLOR: [250, 250, 250],     // 浅灰色背景
+            TRANSFORMED_GRID_COLOR: [30, 100, 200] // 右侧w-平面网格颜色改为深蓝色
+        };
+
+        // =============================================
+        // 模块二: 数学核心类 - 复数类
+        // =============================================
+
+        /** 复数类 - 实现基本复数运算 */
+        class Complex {
+            constructor(re, im) {
+                this.re = re;
+                this.im = im;
+            }
+
+            // 复数加法
+            add(other) {
+                return new Complex(this.re + other.re, this.im + other.im);
+            }
+
+            // 复数减法
+            subtract(other) {
+                return new Complex(this.re - other.re, this.im - other.im);
+            }
+
+            // 复数乘法
+            mult(other) {
+                return new Complex(
+                    this.re * other.re - this.im * other.im,
+                    this.re * other.im + this.im * other.re
+                );
+            }
+
+            // 复数除法
+            divide(other) {
+                const denom = other.re * other.re + other.im * other.im;
+                return new Complex(
+                    (this.re * other.re + this.im * other.im) / denom,
+                    (this.im * other.re - this.re * other.im) / denom
+                );
+            }
+
+            // 复数倒数
+            reciprocal() {
+                const denom = this.re * this.re + this.im * this.im;
+                return new Complex(this.re / denom, -this.im / denom);
+            }
+
+            // 复数指数函数
+            exp() {
+                const magnitude = Math.exp(this.re);
+                return new Complex(
+                    magnitude * Math.cos(this.im),
+                    magnitude * Math.sin(this.im)
+                );
+            }
+
+            // 复数正弦函数
+            sin() {
+                return new Complex(
+                    Math.sin(this.re) * Math.cosh(this.im),
+                    Math.cos(this.re) * Math.sinh(this.im)
+                );
+            }
+
+            // 复数余弦函数
+            cos() {
+                return new Complex(
+                    Math.cos(this.re) * Math.cosh(this.im),
+                    -Math.sin(this.re) * Math.sinh(this.im)
+                );
+            }
+
+            // 复数对数函数（主分支）
+            log() {
+                return new Complex(
+                    Math.log(this.magnitude()),
+                    this.phase()
+                );
+            }
+
+            // 模（绝对值）
+            magnitude() {
+                return Math.sqrt(this.re * this.re + this.im * this.im);
+            }
+
+            // 相位（辐角）
+            phase() {
+                return Math.atan2(this.im, this.re);
+            }
+
+            // 共轭复数
+            conjugate() {
+                return new Complex(this.re, -this.im);
+            }
+
+            // 幂函数
+            pow(exponent) {
+                // 简单实现：对于整数指数
+                if (exponent === 2) {
+                    return this.mult(this);
+                }
+                // 通用实现使用指数和对数
+                const logZ = this.log();
+                const scaled = new Complex(
+                    exponent * logZ.re,
+                    exponent * logZ.im
+                );
+                return scaled.exp();
+            }
+
+            // 转换为字符串
+            toString() {
+                if (this.im === 0) return this.re.toString();
+                if (this.re === 0) return this.im.toString() + 'i';
+                const sign = this.im >= 0 ? '+' : '';
+                return `${this.re} ${sign} ${Math.abs(this.im)}i`;
+            }
+
+            // 检查是否为有限值
+            isFinite() {
+                return isFinite(this.re) && isFinite(this.im);
+            }
+        }
+
+        // =============================================
+        // 模块三: 算法实现类 - 复变函数可视化
+        // =============================================
+
+        /** 复变函数可视化计算器 */
+        class ComplexVisualization {
+            constructor() {
+                this.gridPoints = [];
+                this.transformedPoints = [];
+                this.currentFunction = (z) => z;
+                this.gridDensity = 15;
+                this.range = 2.0;
+                this.vizMode = VizMode.GRID;
+                this.animationParam = 0;
+            }
+
+            /**
+             * 生成z-平面网格点
+             */
+            generateGridPoints() {
+                this.gridPoints = [];
+                const cellSize = (2 * this.range) / this.gridDensity;
+                
+                // 生成水平线
+                for (let i = 0; i <= this.gridDensity; i++) {
+                    const y = -this.range + i * cellSize;
+                    const line = [];
+                    for (let j = 0; j <= this.gridDensity; j++) {
+                        const x = -this.range + j * cellSize;
+                        line.push(new Complex(x, y));
+                    }
+                    this.gridPoints.push(line);
+                }
+                
+                // 生成垂直线
+                for (let i = 0; i <= this.gridDensity; i++) {
+                    const x = -this.range + i * cellSize;
+                    const line = [];
+                    for (let j = 0; j <= this.gridDensity; j++) {
+                        const y = -this.range + j * cellSize;
+                        line.push(new Complex(x, y));
+                    }
+                    this.gridPoints.push(line);
+                }
+            }
+
+            /**
+             * 应用复变函数变换
+             */
+            applyFunction() {
+                this.transformedPoints = [];
+                
+                for (const line of this.gridPoints) {
+                    const transformedLine = [];
+                    for (const point of line) {
+                        try {
+                            const transformed = this.currentFunction(point);
+                            if (transformed && transformed.isFinite && transformed.isFinite()) {
+                                transformedLine.push(transformed);
+                            } else {
+                                transformedLine.push(null);
+                            }
+                        } catch (e) {
+                            transformedLine.push(null);
+                        }
+                    }
+                    this.transformedPoints.push(transformedLine);
+                }
+            }
+
+            /**
+             * 设置复变函数
+             * @param {Function} func - 复变函数
+             */
+            setFunction(func) {
+                this.currentFunction = func;
+                this.applyFunction();
+            }
+
+            /**
+             * 设置网格密度
+             * @param {number} density - 网格密度
+             */
+            setGridDensity(density) {
+                this.gridDensity = density;
+                this.generateGridPoints();
+                this.applyFunction();
+            }
+
+            /**
+             * 设置显示范围
+             * @param {number} range - 显示范围
+             */
+            setRange(range) {
+                this.range = range;
+                this.generateGridPoints();
+                this.applyFunction();
+            }
+
+            /**
+             * 计算数值导数（用于向量场）
+             * @param {Complex} z - 点
+             * @param {number} h - 微小增量
+             * @returns {Complex} 导数近似值
+             */
+            numericalDerivative(z, h = 1e-5) {
+                try {
+                    const fz = this.currentFunction(z);
+                    const fzh = this.currentFunction(new Complex(z.re + h, z.im));
+                    const dfdx = (fzh.re - fz.re) / h;
+                    const dfdy = (fzh.im - fz.im) / h;
+                    
+                    return new Complex(dfdx, dfdy);
+                } catch (e) {
+                    return new Complex(0, 0);
+                }
+            }
+        }
+
+        // =============================================
+        // 模块四: 可视化系统类
+        // =============================================
+
+        /** 复分析可视化系统 */
+        class ComplexAnalysisVisualization {
+            constructor() {
+                this.viz = new ComplexVisualization();
+                this.viz.generateGridPoints();
+                this.viz.applyFunction();
+                
+                // 动画状态
+                this.animationProgress = 0;
+                this.animationStartTime = 0;
+                this.state = VisualizationState.STATIC;
+                this.animationParam = 0;
+                
+                // 当前标签页
+                this.currentTab = TabType.GRID;
+                
+                // 预置函数库
+                this.functionLibrary = {
+                    'z': {
+                        func: (z) => z,
+                        description: "恒等函数 f(z) = z"
+                    },
+                    'z^2': {
+                        func: (z) => z.mult(z),
+                        description: "平方函数 f(z) = z²"
+                    },
+                    '1/z': {
+                        func: (z) => z.reciprocal(),
+                        description: "倒数函数 f(z) = 1/z"
+                    },
+                    'exp(z)': {
+                        func: (z) => z.exp(),
+                        description: "指数函数 f(z) = exp(z)"
+                    },
+                    'sin(z)': {
+                        func: (z) => z.sin(),
+                        description: "正弦函数 f(z) = sin(z)"
+                    },
+                    'cos(z)': {
+                        func: (z) => z.cos(),
+                        description: "余弦函数 f(z) = cos(z)"
+                    },
+                    'log(z)': {
+                        func: (z) => z.log(),
+                        description: "对数函数 f(z) = log(z)"
+                    }
+                };
+                
+                // 动画函数库（用于动画演示）
+                this.animationFunctions = [
+                    (z, t) => z, // 恒等
+                    (z, t) => {
+                        // 从恒等到平方的插值
+                        const identity = z;
+                        const square = z.mult(z);
+                        return new Complex(
+                            identity.re * (1-t) + square.re * t,
+                            identity.im * (1-t) + square.im * t
+                        );
+                    },
+                    (z, t) => {
+                        // 旋转和缩放动画
+                        const angle = t * Math.PI * 2;
+                        const scale = 0.5 + 0.5 * Math.sin(t * Math.PI);
+                        const rotation = new Complex(Math.cos(angle), Math.sin(angle));
+                        return z.mult(rotation).mult(new Complex(scale, 0));
+                    }
+                ];
+                
+                this.currentAnimationFunction = 0;
+                
+                // 初始函数
+                this.currentFunctionKey = 'z';
+                this.applyFunction(this.currentFunctionKey);
+            }
+
+            /**
+             * 应用预置函数
+             * @param {string} functionKey - 函数键
+             */
+            applyFunction(functionKey) {
+                if (this.functionLibrary[functionKey]) {
+                    this.viz.setFunction(this.functionLibrary[functionKey].func);
+                    this.currentFunctionKey = functionKey;
+                    return true;
+                }
+                return false;
+            }
+
+            /**
+             * 应用自定义函数
+             * @param {string} functionString - 函数字符串
+             */
+            applyCustomFunction(functionString) {
+                try {
+                    // 安全地创建自定义函数
+                    const func = new Function('z', `return ${functionString}`);
+                    // 测试函数
+                    const testResult = func(new Complex(1, 0));
+                    if (testResult && typeof testResult.re === 'number' && typeof testResult.im === 'number') {
+                        this.viz.setFunction(func);
+                        this.currentFunctionKey = 'custom';
+                        return true;
+                    }
+                } catch (e) {
+                    console.error('自定义函数错误:', e);
+                }
+                return false;
+            }
+
+            /**
+             * 开始动画
+             */
+            startAnimation() {
+                this.animationProgress = 0;
+                this.animationStartTime = Date.now();
+                this.state = VisualizationState.ANIMATING;
+                this.currentAnimationFunction = (this.currentAnimationFunction + 1) % this.animationFunctions.length;
+            }
+
+            /**
+             * 更新动画状态
+             */
+            updateAnimation() {
+                if (this.state !== VisualizationState.ANIMATING) return;
+                
+                const elapsed = Date.now() - this.animationStartTime;
+                this.animationProgress = Math.min(elapsed / VISUAL_CONFIG.ANIMATION_DURATION, 1);
+                
+                // 更新动画参数
+                this.animationParam = this.animationProgress;
+                this.viz.animationParam = this.animationParam;
+                
+                // 应用动画函数
+                const animFunc = this.animationFunctions[this.currentAnimationFunction];
+                this.viz.setFunction((z) => animFunc(z, this.animationProgress));
+                
+                if (this.animationProgress >= 1) {
+                    this.state = VisualizationState.STATIC;
+                    // 动画结束后恢复原始函数
+                    this.applyFunction(this.currentFunctionKey);
+                }
+            }
+
+            /**
+             * 获取当前函数描述
+             */
+            getCurrentFunctionDescription() {
+                if (this.currentFunctionKey === 'custom') {
+                    return "自定义函数";
+                }
+                return this.functionLibrary[this.currentFunctionKey].description;
+            }
+        }
+
+        /** 复分析可视化渲染器 */
+        class ComplexRenderer {
+            constructor() {
+                this.system = new ComplexAnalysisVisualization();
+            }
+
+            /**
+             * 绘制z-平面
+             * @param {p5} p - p5.js实例
+             */
+            drawZPlane(p) {
+                p.background(VISUAL_CONFIG.BACKGROUND_COLOR);
+                p.translate(VISUAL_CONFIG.CANVAS_WIDTH / 2, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+                
+                this.drawComplexPlane(p, "z-平面 (输入)");
+                
+                if (this.system.viz.vizMode === VizMode.GRID || this.system.viz.vizMode === VizMode.VECTOR_FIELD) {
+                    this.drawGrid(p, this.system.viz.gridPoints, false);
+                }
+                
+                if (this.system.viz.vizMode === VizMode.VECTOR_FIELD) {
+                    this.drawVectorField(p, this.system.viz.gridPoints, false);
+                }
+                
+                if (this.system.viz.vizMode === VizMode.DOMAIN_COLORING) {
+                    this.drawDomainColoring(p, false);
+                }
+            }
+
+            /**
+             * 绘制w-平面
+             * @param {p5} p - p5.js实例
+             */
+            drawWPlane(p) {
+                // 每帧推进动画
+                this.system.updateAnimation();
+
+                p.background(VISUAL_CONFIG.BACKGROUND_COLOR);
+                p.translate(VISUAL_CONFIG.CANVAS_WIDTH / 2, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+                
+                this.drawComplexPlane(p, "w-平面 (输出)");
+                
+                if (this.system.viz.vizMode === VizMode.GRID) {
+                    this.drawGrid(p, this.system.viz.transformedPoints, true);
+                } else if (this.system.viz.vizMode === VizMode.DOMAIN_COLORING) {
+                    this.drawDomainColoring(p, true);
+                } else if (this.system.viz.vizMode === VizMode.VECTOR_FIELD) {
+                    this.drawVectorField(p, this.system.viz.transformedPoints, true);
+                }
+            }
+
+            /**
+             * 绘制复平面基本元素
+             * @param {p5} p - p5.js实例
+             * @param {string} title - 标题
+             */
+            drawComplexPlane(p, title) {
+                const scale = VISUAL_CONFIG.CANVAS_WIDTH / (2 * this.system.viz.range);
+                
+                // 绘制网格
+                p.stroke(VISUAL_CONFIG.GRID_COLOR);
+                p.strokeWeight(0.5);
+                
+                for (let i = -this.system.viz.range; i <= this.system.viz.range; i++) {
+                    if (i === 0) continue;
+                    const x = i * scale;
+                    const y = i * scale;
+                    p.line(-VISUAL_CONFIG.CANVAS_WIDTH/2, y, VISUAL_CONFIG.CANVAS_WIDTH/2, y);
+                    p.line(x, -VISUAL_CONFIG.CANVAS_HEIGHT/2, x, VISUAL_CONFIG.CANVAS_HEIGHT/2);
+                }
+                
+                // 绘制坐标轴
+                p.stroke(VISUAL_CONFIG.AXIS_COLOR);
+                p.strokeWeight(2);
+                p.line(-VISUAL_CONFIG.CANVAS_WIDTH/2, 0, VISUAL_CONFIG.CANVAS_WIDTH/2, 0);
+                p.line(0, -VISUAL_CONFIG.CANVAS_HEIGHT/2, 0, VISUAL_CONFIG.CANVAS_HEIGHT/2);
+                
+                // 绘制坐标刻度
+                p.strokeWeight(1);
+                p.fill(VISUAL_CONFIG.TEXT_COLOR);
+                p.noStroke();
+                p.textAlign(p.CENTER, p.CENTER);
+                p.textSize(12);
+                
+                for (let i = -this.system.viz.range; i <= this.system.viz.range; i++) {
+                    if (i === 0) continue;
+                    const x = i * scale;
+                    const y = i * scale;
+                    
+                    // x轴刻度
+                    p.text(i.toString(), x, 15);
+                    p.stroke(VISUAL_CONFIG.AXIS_COLOR);
+                    p.line(x, -5, x, 5);
+                    
+                    // y轴刻度
+                    p.text(i.toString(), -15, -y);
+                    p.line(-5, y, 5, y);
+                }
+                
+                // 原点标签
+                p.text("0", -10, 15);
+                
+                // 绘制标题
+                p.fill(VISUAL_CONFIG.TEXT_COLOR);
+                p.noStroke();
+                p.textAlign(p.CENTER, p.TOP);
+                p.textSize(16);
+                p.text(title, 0, -VISUAL_CONFIG.CANVAS_HEIGHT/2 + 10);
+            }
+
+            /**
+             * 绘制网格
+             * @param {p5} p - p5.js实例
+             * @param {Array} points - 点数组
+             * @param {boolean} isTransformed - 是否为变换后的网格
+             */
+            drawGrid(p, points, isTransformed) {
+                const scale = VISUAL_CONFIG.CANVAS_WIDTH / (2 * this.system.viz.range);
+                
+                // 使用不同的颜色区分原始网格和变换后的网格
+                if (isTransformed) {
+                    p.stroke(VISUAL_CONFIG.TRANSFORMED_GRID_COLOR); // 右侧w-平面使用深蓝色
+                } else {
+                    p.stroke(VISUAL_CONFIG.GRID_COLOR); // 左侧z-平面使用中灰色
+                }
+                
+                p.strokeWeight(isTransformed ? 1.5 : 1);
+                p.noFill();
+                
+                for (const line of points) {
+                    p.beginShape();
+                    let firstPoint = true;
+                    
+                    for (const point of line) {
+                        if (point) {
+                            const x = point.re * scale;
+                            const y = -point.im * scale; // 注意：p5.js的y轴向下为正
+                            
+                            if (firstPoint) {
+                                p.vertex(x, y);
+                                firstPoint = false;
+                            } else {
+                                p.vertex(x, y);
+                            }
+                        } else {
+                            // 遇到未定义点，结束当前形状开始新的形状
+                            p.endShape();
+                            p.beginShape();
+                            firstPoint = true;
+                        }
+                    }
+                    p.endShape();
+                }
+            }
+
+            /**
+             * 绘制域着色
+             * @param {p5} p - p5.js实例
+             * @param {boolean} isTransformed - 是否为变换后的平面
+             */
+            drawDomainColoring(p, isTransformed) {
+                const scale = VISUAL_CONFIG.CANVAS_WIDTH / (2 * this.system.viz.range);
+                const step = 2; // 像素步长
+                
+                p.noStroke();
+                
+                for (let px = -VISUAL_CONFIG.CANVAS_WIDTH/2; px < VISUAL_CONFIG.CANVAS_WIDTH/2; px += step) {
+                    for (let py = -VISUAL_CONFIG.CANVAS_HEIGHT/2; py < VISUAL_CONFIG.CANVAS_HEIGHT/2; py += step) {
+                        // 将像素坐标转换为复平面坐标
+                        const x = px / scale;
+                        const y = -py / scale; // 注意y轴方向
+                        const z = new Complex(x, y);
+                        
+                        try {
+                            let w;
+                            if (isTransformed) {
+                                w = this.system.viz.currentFunction(z);
+                            } else {
+                                w = z; // z-平面显示恒等函数
+                            }
+                            
+                            if (w && w.isFinite && w.isFinite()) {
+                                // 计算颜色
+                                const phase = w.phase();
+                                let magnitude = w.magnitude();
+                                
+                                // 使用HSL颜色空间
+                                const hue = (phase + Math.PI) / (2 * Math.PI) * 360;
+                                
+                                // 对模使用对数缩放，避免过大值导致颜色饱和
+                                magnitude = Math.log(1 + magnitude);
+                                const lightness = 50 * (1 - Math.exp(-magnitude / 2));
+                                const saturation = 80;
+                                
+                                p.fill(hue, saturation, lightness);
+                                p.rect(px - step/2, py - step/2, step, step);
+                            } else {
+                                // 未定义的点用灰色表示
+                                p.fill(150, 150, 150);
+                                p.rect(px - step/2, py - step/2, step, step);
+                            }
+                        } catch (e) {
+                            // 跳过未定义的点
+                            p.fill(150, 150, 150);
+                            p.rect(px - step/2, py - step/2, step, step);
+                        }
+                    }
+                }
+            }
+
+            /**
+             * 绘制向量场
+             * @param {p5} p - p5.js实例
+             * @param {Array} points - 点数组
+             * @param {boolean} isTransformed - 是否为变换后的平面
+             */
+            drawVectorField(p, points, isTransformed) {
+                const scale = VISUAL_CONFIG.CANVAS_WIDTH / (2 * this.system.viz.range);
+                const vectorScale = VISUAL_CONFIG.VECTOR_SCALE * scale;
+                
+                p.stroke(VISUAL_CONFIG.VECTOR_COLOR);
+                p.fill(VISUAL_CONFIG.VECTOR_COLOR);
+                
+                // 使用网格点作为向量场采样点
+                for (const line of points) {
+                    for (const point of line) {
+                        if (!point) continue;
+                        
+                        const x = point.re * scale;
+                        const y = -point.im * scale;
+                        
+                        try {
+                            let derivative;
+                            if (isTransformed) {
+                                // 在w-平面，我们显示导数的方向
+                                derivative = this.system.viz.numericalDerivative(point);
+                            } else {
+                                // 在z-平面，我们显示恒等函数的导数（即1）
+                                derivative = new Complex(1, 0);
+                            }
+                            
+                            if (derivative && derivative.isFinite()) {
+                                const magnitude = derivative.magnitude();
+                                const angle = derivative.phase();
+                                
+                                // 归一化向量长度，避免过长或过短
+                                const normalizedLength = Math.min(magnitude * vectorScale, scale * 0.8);
+                                
+                                // 绘制向量箭头
+                                p.push();
+                                p.translate(x, y);
+                                p.rotate(-angle); // p5.js的旋转方向与复平面相反
+                                
+                                p.strokeWeight(1);
+                                p.line(0, 0, normalizedLength, 0);
+                                
+                                // 绘制箭头头部
+                                p.translate(normalizedLength, 0);
+                                p.triangle(0, 0, -5, 3, -5, -3);
+                                
+                                p.pop();
+                            }
+                        } catch (e) {
+                            // 跳过无法计算导数的点
+                        }
+                    }
+                }
+            }
+
+            /**
+             * 更新函数信息显示
+             */
+            updateFunctionInfo() {
+                const infoElement = document.getElementById('function-info');
+                if (infoElement) {
+                    infoElement.textContent = this.system.getCurrentFunctionDescription();
+                }
+            }
+        }
+
+        // =============================================
+        // 模块五: 全局实例与初始化
+        // =============================================
+
+        /** 全局可视化渲染器实例 */
+        let complexVisualizer;
+
+        // =============================================
+        // 模块六: p5.js 画布管理
+        // =============================================
+
+        /**
+         * z-平面画布的p5.js实例
+         */
+        let zPlaneSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(400, 400);
+                canvas.parent('z-plane-canvas');
+                p.colorMode(p.HSL, 360, 100, 100, 1);
+            };
+
+            p.draw = function() {
+                if (complexVisualizer) {
+                    complexVisualizer.drawZPlane(p);
+                }
+            };
+        };
+
+        /**
+         * w-平面画布的p5.js实例
+         */
+        let wPlaneSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(400, 400);
+                canvas.parent('w-plane-canvas');
+                p.colorMode(p.HSL, 360, 100, 100, 1);
+            };
+
+            p.draw = function() {
+                if (complexVisualizer) {
+                    complexVisualizer.drawWPlane(p);
+                }
+            };
+        };
+
+        // =============================================
+        // 模块七: 初始化函数
+        // =============================================
+
+        /**
+         * 页面加载初始化
+         */
+        function initializePage() {
+            complexVisualizer = new ComplexRenderer();
+            
+            // 创建p5.js实例
+            new p5(zPlaneSketch);
+            new p5(wPlaneSketch);
+            
+            // 初始化显示
+            complexVisualizer.updateFunctionInfo();
+            
+            // 绑定事件监听器
+            bindEventListeners();
+        }
+
+        // =============================================
+        // 模块八: 用户界面控制函数
+        // =============================================
+
+        /**
+         * 绑定所有事件监听器
+         */
+        function bindEventListeners() {
+            // 函数选择
+            document.getElementById('function-select').addEventListener('change', updateFunction);
+            
+            // 自定义函数输入
+            document.getElementById('custom-function').addEventListener('input', updateCustomFunction);
+            
+            // 滑块控制
+            document.getElementById('grid-density').addEventListener('input', updateGridDensity);
+            document.getElementById('range').addEventListener('input', updateRange);
+            document.getElementById('animation-param').addEventListener('input', updateAnimationParam);
+            document.getElementById('visualization-mode').addEventListener('change', updateVisualizationMode);
+            
+            // 按钮控制
+            document.getElementById('animateButton').addEventListener('click', animateTransformation);
+            document.getElementById('resetButton').addEventListener('click', resetView);
+            document.getElementById('randomButton').addEventListener('click', randomFunction);
+            
+            // 标签页切换
+            document.getElementById('gridTab').addEventListener('click', () => switchTab('grid'));
+            document.getElementById('domainTab').addEventListener('click', () => switchTab('domain'));
+            document.getElementById('vectorTab').addEventListener('click', () => switchTab('vector'));
+            document.getElementById('theoryTab').addEventListener('click', () => switchTab('theory'));
+        }
+
+        /**
+         * 切换标签页
+         * @param {string} tabName - 标签页名称
+         */
+        function switchTab(tabName) {
+            // 更新标签激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 激活当前标签
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // 更新可视化标签页
+            if (complexVisualizer) {
+                complexVisualizer.system.currentTab = tabName;
+            }
+            
+            // 更新说明显示
+            document.querySelectorAll('.explanation > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.getElementById(tabName + 'Explanation').style.display = 'block';
+            
+            // 根据标签页设置可视化模式
+            let vizMode;
+            switch(tabName) {
+                case 'grid':
+                    vizMode = VizMode.GRID;
+                    break;
+                case 'domain':
+                    vizMode = VizMode.DOMAIN_COLORING;
+                    break;
+                case 'vector':
+                    vizMode = VizMode.VECTOR_FIELD;
+                    break;
+                default:
+                    vizMode = VizMode.GRID;
+            }
+            
+            document.getElementById('visualization-mode').value = vizMode;
+            updateVisualizationMode();
+        }
+
+        /**
+         * 更新函数
+         */
+        function updateFunction() {
+            if (!complexVisualizer) return;
+            
+            const functionSelect = document.getElementById('function-select');
+            const customFunctionGroup = document.getElementById('custom-function-group');
+            
+            if (functionSelect.value === 'custom') {
+                customFunctionGroup.style.display = 'block';
+                updateCustomFunction();
+            } else {
+                customFunctionGroup.style.display = 'none';
+                complexVisualizer.system.applyFunction(functionSelect.value);
+                complexVisualizer.updateFunctionInfo();
+            }
+        }
+
+        /**
+         * 更新自定义函数
+         */
+        function updateCustomFunction() {
+            if (!complexVisualizer) return;
+            
+            const customFunction = document.getElementById('custom-function').value;
+            if (customFunction.trim() !== '') {
+                complexVisualizer.system.applyCustomFunction(customFunction);
+                complexVisualizer.updateFunctionInfo();
+            }
+        }
+
+        /**
+         * 更新网格密度
+         */
+        function updateGridDensity() {
+            const density = parseInt(document.getElementById('grid-density').value);
+            document.getElementById('gridDensityValue').textContent = density;
+            
+            if (complexVisualizer) {
+                complexVisualizer.system.viz.setGridDensity(density);
+            }
+        }
+
+        /**
+         * 更新显示范围
+         */
+        function updateRange() {
+            const range = parseFloat(document.getElementById('range').value);
+            document.getElementById('rangeValue').textContent = range.toFixed(1);
+            
+            if (complexVisualizer) {
+                complexVisualizer.system.viz.setRange(range);
+            }
+        }
+
+        /**
+         * 更新动画参数
+         */
+        function updateAnimationParam() {
+            const param = parseInt(document.getElementById('animation-param').value);
+            document.getElementById('animationParamValue').textContent = (param / 100).toFixed(2);
+            
+            if (complexVisualizer) {
+                complexVisualizer.system.animationParam = param / 100;
+                complexVisualizer.system.viz.animationParam = param / 100;
+            }
+        }
+
+        /**
+         * 更新可视化模式
+         */
+        function updateVisualizationMode() {
+            const mode = document.getElementById('visualization-mode').value;
+            
+            if (complexVisualizer) {
+                complexVisualizer.system.viz.vizMode = mode;
+            }
+        }
+
+        /**
+         * 播放变换动画
+         */
+        function animateTransformation() {
+            if (complexVisualizer) {
+                complexVisualizer.system.startAnimation();
+            }
+        }
+
+        /**
+         * 重置视图
+         */
+        function resetView() {
+            if (complexVisualizer) {
+                // 重置到初始状态
+                document.getElementById('function-select').value = 'z';
+                document.getElementById('grid-density').value = 15;
+                document.getElementById('range').value = 2.0;
+                document.getElementById('animation-param').value = 0;
+                document.getElementById('visualization-mode').value = 'grid';
+                
+                // 更新显示值
+                document.getElementById('gridDensityValue').textContent = '15';
+                document.getElementById('rangeValue').textContent = '2.0';
+                document.getElementById('animationParamValue').textContent = '0.00';
+                
+                // 应用重置
+                updateFunction();
+                updateGridDensity();
+                updateRange();
+                updateAnimationParam();
+                updateVisualizationMode();
+                
+                // 切换到网格标签
+                switchTab('grid');
+            }
+        }
+
+        /**
+         * 随机函数
+         */
+        function randomFunction() {
+            if (!complexVisualizer) return;
+            
+            const functions = Object.keys(complexVisualizer.system.functionLibrary);
+            const randomFunc = functions[Math.floor(Math.random() * functions.length)];
+            
+            document.getElementById('function-select').value = randomFunc;
+            updateFunction();
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>

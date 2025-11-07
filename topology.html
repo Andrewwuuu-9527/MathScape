@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>拓扑学可视化 </title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        :root {
+            --primary-color: #4caf50;
+            --primary-dark: #388e3c;
+            --secondary-color: #e8f5e9;
+            --text-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --control-bg: #e8f5e9;
+            --header-gradient: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-button:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .nav-button.active {
+            background: #3498db;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+        }
+
+        header {
+            text-align: center;
+            background: var(--header-gradient);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.8em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .visualization-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 968px) {
+            .visualization-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sketch-panel {
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sketch-panel h3 {
+            text-align: center;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            margin: 0;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .controls {
+            background: var(--control-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .controls h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-size: 1.5em;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-group h4 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .slider-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 16px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #95a5a6;
+        }
+
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .explanation {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin: 25px 0;
+        }
+
+        .explanation h3 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .explanation p {
+            margin-bottom: 15px;
+        }
+
+        .explanation ul, .explanation ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .explanation li {
+            margin-bottom: 8px;
+        }
+
+        .math-equation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .info-panel {
+            background: #e8f5e9;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #bdc3c7;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: var(--text-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #95a5a6;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-button {
+                width: 90%;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">特征值与特征向量</a>
+            <a href="determinants.html" class="nav-button">行列式几何</a>
+            <a href="svd.html" class="nav-button">奇异值分解</a>
+            <a href="linear_transformations.html" class="nav-button">线性变换</a>
+            <a href="qr.html" class="nav-button">QR分解</a>
+            <a href="lu.html" class="nav-button">LU分解</a>
+            <a href="fourier.html" class="nav-button">傅里叶变换</a>
+            <a href="gradient_descent.html" class="nav-button">梯度下降</a>
+            <a href="probability.html" class="nav-button">概率分布</a>
+            <a href="differential_equations.html" class="nav-button">微分方程</a>
+            <a href="complex_analysis.html" class="nav-button">复分析</a>
+            <a href="topology.html" class="nav-button active">拓扑学</a>
+        </div>
+    </nav>
+
+    <header>
+        <h1>拓扑学</h1>
+        <p class="subtitle">探索空间连续变形下的不变性质</p>
+    </header>
+    
+    <main>
+        <div class="tab-container">
+            <button class="tab active" id="mobiusTab">莫比乌斯带</button>
+            <button class="tab" id="kleinTab">克莱因瓶</button>
+            <button class="tab" id="topologyTab">拓扑变换</button>
+            <button class="tab" id="theoryTab">拓扑学理论</button>
+        </div>
+        
+        <div class="visualization-container">
+            <div class="sketch-panel">
+                <h3>3D拓扑结构</h3>
+                <div id="topology-canvas"></div>
+            </div>
+            <div class="sketch-panel">
+                <h3>参数空间与映射</h3>
+                <div id="parameter-canvas"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>拓扑对象参数控制</h3>
+            
+            <div class="control-grid">
+                <div class="control-group">
+                    <h4>拓扑对象</h4>
+                    
+                    <div class="slider-container">
+                        <label>选择对象: 
+                            <select id="topology-object">
+                                <option value="mobius">莫比乌斯带</option>
+                                <option value="klein">克莱因瓶</option>
+                                <option value="torus">环面</option>
+                                <option value="sphere">球面</option>
+                            </select>
+                        </label>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>旋转速度: 
+                            <span class="slider-value" id="rotationSpeedValue">1.0</span>
+                        </label>
+                        <input type="range" id="rotation-speed" min="0" max="3" step="0.1" value="1.0">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>显示模式: 
+                            <select id="display-mode">
+                                <option value="wireframe">线框模式</option>
+                                <option value="solid">实体模式</option>
+                                <option value="points">点云模式</option>
+                            </select>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>对象参数</h4>
+                    
+                    <div class="slider-container">
+                        <label>扭曲参数: 
+                            <span class="slider-value" id="twistValue">0.5</span>
+                        </label>
+                        <input type="range" id="twist" min="0" max="1" step="0.01" value="0.5">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>尺寸缩放: 
+                            <span class="slider-value" id="scaleValue">1.0</span>
+                        </label>
+                        <input type="range" id="scale" min="0.5" max="2" step="0.1" value="1.0">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>细分程度: 
+                            <span class="slider-value" id="resolutionValue">50</span>
+                        </label>
+                        <input type="range" id="resolution" min="10" max="100" step="5" value="50">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <strong>当前对象信息:</strong>
+                <span id="object-info">莫比乌斯带 - 单侧曲面，只有一个面和一个边界</span>
+            </div>
+            
+            <div class="button-group">
+                <button id="animateButton">播放动画</button>
+                <button id="resetButton" class="secondary">重置视图</button>
+                <button id="colorButton" class="secondary">切换颜色</button>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <div id="mobiusExplanation">
+                <h3>莫比乌斯带</h3>
+                <p>莫比乌斯带是最著名的拓扑对象之一，由德国数学家奥古斯特·费迪南德·莫比乌斯和约翰·本尼迪克特·李斯丁在1858年独立发现。</p>
+                
+                <div class="math-equation">
+                    x(u,v) = (1 + v/2 * cos(u/2)) * cos(u)<br>
+                    y(u,v) = (1 + v/2 * cos(u/2)) * sin(u)<br>
+                    z(u,v) = v/2 * sin(u/2)
+                </div>
+                
+                <p><strong>拓扑性质：</strong></p>
+                <ul>
+                    <li><strong>单侧性</strong>：莫比乌斯带只有一个面，可以从一点出发不越过边界到达任何其他点</li>
+                    <li><strong>不可定向性</strong>：无法一致地定义"内部"和"外部"</li>
+                    <li><strong>单边界</strong>：莫比乌斯带只有一个边界曲线</li>
+                </ul>
+                
+                <p><strong>构造方法：</strong></p>
+                <ol>
+                    <li>取一条长方形纸带</li>
+                    <li>将一端旋转180度</li>
+                    <li>将两端粘合在一起</li>
+                </ol>
+                
+                <p><strong>应用：</strong></p>
+                <p>莫比乌斯带在工业设计、艺术和数学中都有应用，如传送带、电阻器和分子结构设计。</p>
+                
+                <div class="info-panel">
+                    <strong>提示：</strong> 注意莫比乌斯带如何通过一个连续的曲面连接"两侧"。尝试在可视化中跟随一条路径，你会发现最终会回到起点但位于"另一侧"。
+                </div>
+            </div>
+            
+            <div id="kleinExplanation" style="display:none">
+                <h3>克莱因瓶</h3>
+                <p>克莱因瓶是另一种著名的拓扑对象，由德国数学家费利克斯·克莱因在1882年提出。它是一个不可定向的闭曲面，没有内外之分。</p>
+                
+                <div class="math-equation">
+                    x(u,v) = (a + cos(u/2)*sin(v) - sin(u/2)*sin(2v)) * cos(u)<br>
+                    y(u,v) = (a + cos(u/2)*sin(v) - sin(u/2)*sin(2v)) * sin(u)<br>
+                    z(u,v) = sin(u/2)*sin(v) + cos(u/2)*sin(2v)
+                </div>
+                
+                <p><strong>拓扑性质：</strong></p>
+                <ul>
+                    <li><strong>不可定向性</strong>：无法一致地区分内部和外部</li>
+                    <li><strong>无边界</strong>：克莱因瓶是一个闭曲面，没有边界</li>
+                    <li><strong>欧拉特征数</strong>：克莱因瓶的欧拉特征数为0</li>
+                </ul>
+                
+                <p><strong>构造方法：</strong></p>
+                <ol>
+                    <li>取一个圆柱面</li>
+                    <li>将两端边界圆以相反方向粘合</li>
+                    <li>在四维空间中可以实现无自交的嵌入</li>
+                </ol>
+                
+                <p><strong>与环面的关系：</strong></p>
+                <p>克莱因瓶可以看作是两个莫比乌斯带沿边界粘合而成，也可以看作是环面的一种"扭曲"版本。</p>
+                
+                <div class="info-panel">
+                    <strong>提示：</strong> 注意克莱因瓶在三维空间中的自交现象。在四维空间中，克莱因瓶可以无自交地嵌入，但在我们的三维可视化中必须接受自交。
+                </div>
+            </div>
+            
+            <div id="topologyExplanation" style="display:none">
+                <h3>拓扑变换</h3>
+                <p>拓扑学研究在连续变形下保持不变的性质。两个空间如果可以通过连续的双射相互转换，则称为同胚。</p>
+                
+                <p><strong>拓扑不变量：</strong></p>
+                <ul>
+                    <li><strong>连通性</strong>：空间是否作为一个整体连接</li>
+                    <li><strong>紧致性</strong>：空间是否有"无限延伸"</li>
+                    <li><strong>欧拉特征数</strong>：多面体顶点数-边数+面数</li>
+                    <li><strong>同伦群</strong>：描述空间中的"洞"</li>
+                </ul>
+                
+                <p><strong>常见拓扑变换：</strong></p>
+                <ol>
+                    <li><strong>拉伸和压缩</strong>：不改变拓扑性质</li>
+                    <li><strong>弯曲和扭曲</strong>：不改变拓扑性质</li>
+                    <li><strong>切割和粘合</strong>：改变拓扑性质</li>
+                </ol>
+                
+                <p><strong>拓扑等价示例：</strong></p>
+                <ul>
+                    <li>球面、立方体和四面体都是拓扑等价的</li>
+                    <li>环面和咖啡杯是拓扑等价的</li>
+                    <li>莫比乌斯带和普通圆柱带不是拓扑等价的</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>关键思想：</strong> 拓扑学家将咖啡杯和甜甜圈视为相同的，因为他们只关注空间的整体连通性，而不关注具体的几何形状。
+                </div>
+            </div>
+            
+            <div id="theoryExplanation" style="display:none">
+                <h3>拓扑学理论基础</h3>
+                <p>拓扑学是研究空间在连续变形下不变性质的数学分支，是现代数学的核心领域之一。</p>
+                
+                <p><strong>核心概念：</strong></p>
+                <ul>
+                    <li><strong>拓扑空间</strong>：定义了开集集合的集合</li>
+                    <li><strong>连续映射</strong>：保持拓扑结构的映射</li>
+                    <li><strong>同胚</strong>：双向连续的映射</li>
+                    <li><strong>流形</strong>：局部类似欧几里得空间的拓扑空间</li>
+                </ul>
+                
+                <p><strong>主要分支：</strong></p>
+                <ol>
+                    <li><strong>点集拓扑</strong>：研究一般拓扑空间的基本性质</li>
+                    <li><strong>代数拓扑</strong>：使用代数工具研究拓扑空间</li>
+                    <li><strong>微分拓扑</strong>：研究可微流形</li>
+                    <li><strong>几何拓扑</strong>：研究流形的几何结构</li>
+                </ol>
+                
+                <p><strong>重要定理：</strong></p>
+                <ul>
+                    <li><strong>若尔当曲线定理</strong>：平面简单闭曲线将平面分成两个区域</li>
+                    <li><strong>布劳威尔不动点定理</strong>：球体到自身的连续映射必有不动点</li>
+                    <li><strong>毛球定理</strong>：球面上连续切向量场必有零点</li>
+                </ul>
+                
+                <p><strong>应用领域：</strong></p>
+                <ul>
+                    <li><strong>物理学</strong>：宇宙学、弦理论、凝聚态物理</li>
+                    <li><strong>计算机科学</strong>：数据分析、网络拓扑、计算机图形学</li>
+                    <li><strong>生物学</strong>：蛋白质结构、DNA拓扑、神经网络</li>
+                    <li><strong>工程学</strong>：机器人路径规划、材料科学</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>教育价值：</strong> 拓扑学提供了理解空间和形状的全新视角，强调整体结构而非局部度量性质。通过可视化工具，我们可以直观地理解这些抽象概念。
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    
+    <!-- 拓扑学可视化代码 -->
+    <script>
+        // =============================================================================
+        // 拓扑学模块
+        // 作者: MathScape
+        // 描述: 拓扑空间与曲面可视化
+        // =============================================================================
+
+        // =============================================
+        // 模块一: 全局常量与变量定义
+        // =============================================
+
+        /** 可视化状态枚举 */
+        const VisualizationState = {
+            STATIC: 'static',
+            ANIMATING: 'animating',
+            INTERACTIVE: 'interactive'
+        };
+
+        /** 标签页类型枚举 */
+        const TabType = {
+            MOBIUS: 'mobius',
+            KLEIN: 'klein',
+            TOPOLOGY: 'topology',
+            THEORY: 'theory'
+        };
+
+        /** 拓扑对象类型枚举 */
+        const TopologyObject = {
+            MOBIUS: 'mobius',
+            KLEIN: 'klein',
+            TORUS: 'torus',
+            SPHERE: 'sphere'
+        };
+
+        /** 显示模式枚举 */
+        const DisplayMode = {
+            WIREFRAME: 'wireframe',
+            SOLID: 'solid',
+            POINTS: 'points'
+        };
+
+        /** 可视化配置常量 */
+        const VISUAL_CONFIG = {
+            CANVAS_WIDTH: 400,
+            CANVAS_HEIGHT: 400,
+            ANIMATION_DURATION: 5000,
+            BACKGROUND_COLOR: [250, 250, 250],
+            OBJECT_COLORS: [
+                [65, 105, 225],  // 皇家蓝
+                [220, 20, 60],   // 深红
+                [50, 205, 50],   // 酸橙绿
+                [255, 140, 0]    // 深橙
+            ],
+            WIREFRAME_COLOR: [30, 30, 30],
+            POINT_COLOR: [70, 130, 180],
+            VERTEX_SCALE: 35,    // 减小顶点缩放因子，使图形更小
+            CAMERA_DISTANCE: 400 // 增加相机距离，确保图形完全可见
+        };
+
+        // =============================================
+        // 模块二: 数学核心类 - 拓扑曲面参数方程
+        // =============================================
+
+        /** 拓扑曲面参数方程类 */
+        class TopologicalSurface {
+            /**
+             * 莫比乌斯带参数方程
+             * @param {number} u - 参数u ∈ [0, 2π]
+             * @param {number} v - 参数v ∈ [-1, 1]
+             * @param {number} twist - 扭曲参数
+             * @returns {Object} 3D坐标 {x, y, z}
+             */
+            static mobiusStrip(u, v, twist = 0.5) {
+                // 标准莫比乌斯带参数方程
+                const x = (1 + (v/2) * Math.cos(u * twist)) * Math.cos(u);
+                const y = (1 + (v/2) * Math.cos(u * twist)) * Math.sin(u);
+                const z = (v/2) * Math.sin(u * twist);
+                
+                return { x, y, z };
+            }
+
+            /**
+             * 克莱因瓶参数方程
+             * @param {number} u - 参数u ∈ [0, 2π]
+             * @param {number} v - 参数v ∈ [0, 2π]
+             * @param {number} a - 形状参数
+             * @returns {Object} 3D坐标 {x, y, z}
+             */
+            static kleinBottle(u, v, a = 2) {
+                // 克莱因瓶参数方程
+                const x = (a + Math.cos(u/2) * Math.sin(v) - Math.sin(u/2) * Math.sin(2*v)) * Math.cos(u);
+                const y = (a + Math.cos(u/2) * Math.sin(v) - Math.sin(u/2) * Math.sin(2*v)) * Math.sin(u);
+                const z = Math.sin(u/2) * Math.sin(v) + Math.cos(u/2) * Math.sin(2*v);
+                
+                return { x, y, z };
+            }
+
+            /**
+             * 环面参数方程
+             * @param {number} u - 参数u ∈ [0, 2π]
+             * @param {number} v - 参数v ∈ [0, 2π]
+             * @param {number} R - 大半径
+             * @param {number} r - 小半径
+             * @returns {Object} 3D坐标 {x, y, z}
+             */
+            static torus(u, v, R = 1, r = 0.3) {
+                const x = (R + r * Math.cos(v)) * Math.cos(u);
+                const y = (R + r * Math.cos(v)) * Math.sin(u);
+                const z = r * Math.sin(v);
+                
+                return { x, y, z };
+            }
+
+            /**
+             * 球面参数方程
+             * @param {number} u - 参数u ∈ [0, 2π]
+             * @param {number} v - 参数v ∈ [0, π]
+             * @param {number} r - 半径
+             * @returns {Object} 3D坐标 {x, y, z}
+             */
+            static sphere(u, v, r = 1) {
+                const x = r * Math.sin(v) * Math.cos(u);
+                const y = r * Math.sin(v) * Math.sin(u);
+                const z = r * Math.cos(v);
+                
+                return { x, y, z };
+            }
+        }
+
+        // =============================================
+        // 模块三: 算法实现类 - 拓扑曲面生成
+        // =============================================
+
+        /** 拓扑曲面生成器 */
+        class TopologyGenerator {
+            constructor() {
+                this.resolution = 50;
+                this.currentObject = TopologyObject.MOBIUS;
+                this.twist = 0.5;
+                this.scale = 1.0;
+                this.rotationSpeed = 1.0;
+                this.displayMode = DisplayMode.WIREFRAME;
+                this.colorIndex = 0;
+                
+                // 动画状态
+                this.rotationX = -0.5; // 调整初始视角
+                this.rotationY = 0.5;  // 调整初始视角
+                this.animationProgress = 0;
+            }
+
+            /**
+             * 生成拓扑曲面网格
+             * @returns {Array} 曲面网格数据
+             */
+            generateSurface() {
+                const vertices = [];
+                const uSteps = this.resolution;
+                const vSteps = this.resolution;
+                
+                for (let i = 0; i <= uSteps; i++) {
+                    const u = (i / uSteps) * 2 * Math.PI;
+                    const row = [];
+                    
+                    for (let j = 0; j <= vSteps; j++) {
+                        let v, point;
+                        
+                        switch (this.currentObject) {
+                            case TopologyObject.MOBIUS:
+                                v = (j / vSteps) * 2 - 1; // v ∈ [-1, 1]
+                                point = TopologicalSurface.mobiusStrip(u, v, this.twist);
+                                break;
+                            case TopologyObject.KLEIN:
+                                v = (j / vSteps) * 2 * Math.PI; // v ∈ [0, 2π]
+                                point = TopologicalSurface.kleinBottle(u, v, 1.5 + this.twist);
+                                break;
+                            case TopologyObject.TORUS:
+                                v = (j / vSteps) * 2 * Math.PI; // v ∈ [0, 2π]
+                                point = TopologicalSurface.torus(u, v, 1, 0.3 + this.twist * 0.4);
+                                break;
+                            case TopologyObject.SPHERE:
+                                v = (j / vSteps) * Math.PI; // v ∈ [0, π]
+                                point = TopologicalSurface.sphere(u, v, 1);
+                                break;
+                        }
+                        
+                        // 应用缩放
+                        point.x *= this.scale;
+                        point.y *= this.scale;
+                        point.z *= this.scale;
+                        
+                        row.push(point);
+                    }
+                    
+                    vertices.push(row);
+                }
+                
+                return vertices;
+            }
+
+            /**
+             * 更新动画状态
+             */
+            updateAnimation() {
+                this.rotationY += 0.01 * this.rotationSpeed;
+                this.rotationX += 0.005 * this.rotationSpeed;
+                this.animationProgress = (this.animationProgress + 0.01) % (2 * Math.PI);
+            }
+
+            /**
+             * 获取当前对象描述
+             */
+            getObjectDescription() {
+                switch (this.currentObject) {
+                    case TopologyObject.MOBIUS:
+                        return "莫比乌斯带 - 单侧曲面，只有一个面和一个边界";
+                    case TopologyObject.KLEIN:
+                        return "克莱因瓶 - 不可定向闭曲面，没有内外之分";
+                    case TopologyObject.TORUS:
+                        return "环面 - 可定向曲面，欧拉特征数为0";
+                    case TopologyObject.SPHERE:
+                        return "球面 - 可定向曲面，欧拉特征数为2";
+                    default:
+                        return "未知拓扑对象";
+                }
+            }
+        }
+
+        // =============================================
+        // 模块四: 可视化系统类
+        // =============================================
+
+        /** 拓扑学可视化系统 */
+        class TopologyVisualization {
+            constructor() {
+                this.generator = new TopologyGenerator();
+                this.surface = this.generator.generateSurface();
+                
+                // 当前标签页
+                this.currentTab = TabType.MOBIUS;
+                
+                // 鼠标交互
+                this.isDragging = false;
+                this.lastMouseX = 0;
+                this.lastMouseY = 0;
+                this.dragRotationX = 0;
+                this.dragRotationY = 0;
+            }
+
+            /**
+             * 更新拓扑对象
+             * @param {string} objectType - 对象类型
+             */
+            updateObject(objectType) {
+                this.generator.currentObject = objectType;
+                this.surface = this.generator.generateSurface();
+            }
+
+            /**
+             * 更新扭曲参数
+             * @param {number} twist - 扭曲参数
+             */
+            updateTwist(twist) {
+                this.generator.twist = twist;
+                this.surface = this.generator.generateSurface();
+            }
+
+            /**
+             * 更新缩放
+             * @param {number} scale - 缩放参数
+             */
+            updateScale(scale) {
+                this.generator.scale = scale;
+                this.surface = this.generator.generateSurface();
+            }
+
+            /**
+             * 更新分辨率
+             * @param {number} resolution - 分辨率
+             */
+            updateResolution(resolution) {
+                this.generator.resolution = resolution;
+                this.surface = this.generator.generateSurface();
+            }
+
+            /**
+             * 更新显示模式
+             * @param {string} displayMode - 显示模式
+             */
+            updateDisplayMode(displayMode) {
+                this.generator.displayMode = displayMode;
+            }
+
+            /**
+             * 切换颜色
+             */
+            cycleColor() {
+                this.generator.colorIndex = (this.generator.colorIndex + 1) % VISUAL_CONFIG.OBJECT_COLORS.length;
+            }
+
+            /**
+             * 获取当前对象描述
+             */
+            getObjectDescription() {
+                return this.generator.getObjectDescription();
+            }
+        }
+
+        /** 拓扑学可视化渲染器 */
+        class TopologyRenderer {
+            constructor() {
+                this.system = new TopologyVisualization();
+            }
+
+            /**
+             * 绘制3D拓扑结构
+             * @param {p5} p - p5.js实例
+             */
+            drawTopology(p) {
+                // 每帧推进动画
+                this.system.generator.updateAnimation();
+
+                p.background(VISUAL_CONFIG.BACKGROUND_COLOR);
+                
+                // 设置相机位置，确保图形完全可见
+                p.camera(0, 0, VISUAL_CONFIG.CAMERA_DISTANCE, 0, 0, 0, 0, 1, 0);
+                
+                // 应用旋转
+                p.rotateX(this.system.generator.rotationX + this.system.dragRotationX);
+                p.rotateY(this.system.generator.rotationY + this.system.dragRotationY);
+                
+                // 绘制坐标轴
+                this.drawCoordinateAxes(p);
+                
+                // 绘制拓扑曲面
+                this.drawTopologicalSurface(p);
+            }
+
+            /**
+             * 绘制参数空间与映射
+             * @param {p5} p - p5.js实例
+             */
+            drawParameterSpace(p) {
+                p.background(VISUAL_CONFIG.BACKGROUND_COLOR);
+                p.translate(VISUAL_CONFIG.CANVAS_WIDTH / 2, VISUAL_CONFIG.CANVAS_HEIGHT / 2);
+                
+                // 绘制参数空间
+                this.drawParameterPlane(p);
+                
+                // 绘制映射关系
+                this.drawMapping(p);
+            }
+
+            /**
+             * 绘制坐标轴
+             * @param {p5} p - p5.js实例
+             */
+            drawCoordinateAxes(p) {
+                const axisLength = 1.5; // 减小坐标轴长度
+                
+                // x轴 - 红色
+                p.stroke(255, 0, 0);
+                p.strokeWeight(2);
+                p.line(0, 0, 0, axisLength * VISUAL_CONFIG.VERTEX_SCALE, 0, 0);
+                
+                // y轴 - 绿色
+                p.stroke(0, 255, 0);
+                p.line(0, 0, 0, 0, axisLength * VISUAL_CONFIG.VERTEX_SCALE, 0);
+                
+                // z轴 - 蓝色
+                p.stroke(0, 0, 255);
+                p.line(0, 0, 0, 0, 0, axisLength * VISUAL_CONFIG.VERTEX_SCALE);
+                
+                // 坐标轴标签
+                p.fill(0);
+                p.noStroke();
+                p.textSize(12);
+                p.textAlign(p.CENTER, p.CENTER);
+                
+                p.push();
+                p.translate(axisLength * VISUAL_CONFIG.VERTEX_SCALE + 5, 0, 0);
+                p.text("X", 0, 0);
+                p.pop();
+                
+                p.push();
+                p.translate(0, axisLength * VISUAL_CONFIG.VERTEX_SCALE + 5, 0);
+                p.text("Y", 0, 0);
+                p.pop();
+                
+                p.push();
+                p.translate(0, 0, axisLength * VISUAL_CONFIG.VERTEX_SCALE + 5);
+                p.text("Z", 0, 0);
+                p.pop();
+            }
+
+            /**
+             * 绘制拓扑曲面
+             * @param {p5} p - p5.js实例
+             */
+            drawTopologicalSurface(p) {
+                const vertices = this.system.surface;
+                const color = VISUAL_CONFIG.OBJECT_COLORS[this.system.generator.colorIndex];
+                
+                switch (this.system.generator.displayMode) {
+                    case DisplayMode.WIREFRAME:
+                        this.drawWireframe(p, vertices, color);
+                        break;
+                    case DisplayMode.SOLID:
+                        this.drawSolidSurface(p, vertices, color);
+                        break;
+                    case DisplayMode.POINTS:
+                        this.drawPointCloud(p, vertices, color);
+                        break;
+                }
+            }
+
+            /**
+             * 绘制线框模式
+             * @param {p5} p - p5.js实例
+             * @param {Array} vertices - 顶点数组
+             * @param {Array} color - 颜色数组
+             */
+            drawWireframe(p, vertices, color) {
+                p.stroke(VISUAL_CONFIG.WIREFRAME_COLOR);
+                p.strokeWeight(1);
+                p.noFill();
+                
+                // 绘制u方向线
+                for (let i = 0; i < vertices.length; i++) {
+                    p.beginShape(p.LINE_STRIP);
+                    for (let j = 0; j < vertices[i].length; j++) {
+                        const v = vertices[i][j];
+                        p.vertex(v.x * VISUAL_CONFIG.VERTEX_SCALE, v.y * VISUAL_CONFIG.VERTEX_SCALE, v.z * VISUAL_CONFIG.VERTEX_SCALE);
+                    }
+                    p.endShape();
+                }
+                
+                // 绘制v方向线
+                for (let j = 0; j < vertices[0].length; j++) {
+                    p.beginShape(p.LINE_STRIP);
+                    for (let i = 0; i < vertices.length; i++) {
+                        const v = vertices[i][j];
+                        p.vertex(v.x * VISUAL_CONFIG.VERTEX_SCALE, v.y * VISUAL_CONFIG.VERTEX_SCALE, v.z * VISUAL_CONFIG.VERTEX_SCALE);
+                    }
+                    p.endShape();
+                }
+            }
+
+            /**
+             * 绘制实体表面
+             * @param {p5} p - p5.js实例
+             * @param {Array} vertices - 顶点数组
+             * @param {Array} color - 颜色数组
+             */
+            drawSolidSurface(p, vertices, color) {
+                p.fill(color[0], color[1], color[2], 150);
+                p.stroke(VISUAL_CONFIG.WIREFRAME_COLOR);
+                p.strokeWeight(1);
+                
+                for (let i = 0; i < vertices.length - 1; i++) {
+                    for (let j = 0; j < vertices[i].length - 1; j++) {
+                        const v1 = vertices[i][j];
+                        const v2 = vertices[i+1][j];
+                        const v3 = vertices[i+1][j+1];
+                        const v4 = vertices[i][j+1];
+                        
+                        p.beginShape();
+                        p.vertex(v1.x * VISUAL_CONFIG.VERTEX_SCALE, v1.y * VISUAL_CONFIG.VERTEX_SCALE, v1.z * VISUAL_CONFIG.VERTEX_SCALE);
+                        p.vertex(v2.x * VISUAL_CONFIG.VERTEX_SCALE, v2.y * VISUAL_CONFIG.VERTEX_SCALE, v2.z * VISUAL_CONFIG.VERTEX_SCALE);
+                        p.vertex(v3.x * VISUAL_CONFIG.VERTEX_SCALE, v3.y * VISUAL_CONFIG.VERTEX_SCALE, v3.z * VISUAL_CONFIG.VERTEX_SCALE);
+                        p.vertex(v4.x * VISUAL_CONFIG.VERTEX_SCALE, v4.y * VISUAL_CONFIG.VERTEX_SCALE, v4.z * VISUAL_CONFIG.VERTEX_SCALE);
+                        p.endShape(p.CLOSE);
+                    }
+                }
+            }
+
+            /**
+             * 绘制点云模式
+             * @param {p5} p - p5.js实例
+             * @param {Array} vertices - 顶点数组
+             * @param {Array} color - 颜色数组
+             */
+            drawPointCloud(p, vertices, color) {
+                p.stroke(VISUAL_CONFIG.POINT_COLOR);
+                p.strokeWeight(3);
+                p.noFill();
+                
+                for (let i = 0; i < vertices.length; i++) {
+                    for (let j = 0; j < vertices[i].length; j++) {
+                        const v = vertices[i][j];
+                        p.point(v.x * VISUAL_CONFIG.VERTEX_SCALE, v.y * VISUAL_CONFIG.VERTEX_SCALE, v.z * VISUAL_CONFIG.VERTEX_SCALE);
+                    }
+                }
+            }
+
+            /**
+             * 绘制参数平面
+             * @param {p5} p - p5.js实例
+             */
+            drawParameterPlane(p) {
+                p.stroke(200);
+                p.strokeWeight(1);
+                p.noFill();
+                
+                // 绘制参数平面网格
+                const size = 150;
+                const steps = 10;
+                
+                for (let i = -steps; i <= steps; i++) {
+                    const x = (i / steps) * size;
+                    p.line(-size, x, size, x);
+                    p.line(x, -size, x, size);
+                }
+                
+                // 绘制坐标轴
+                p.stroke(0);
+                p.strokeWeight(2);
+                p.line(-size, 0, size, 0); // x轴
+                p.line(0, -size, 0, size); // y轴
+                
+                // 坐标轴标签
+                p.fill(0);
+                p.noStroke();
+                p.textSize(14);
+                p.textAlign(p.CENTER, p.CENTER);
+                p.text("u", size + 15, 0);
+                p.text("v", 0, size + 15);
+                
+                // 绘制参数点
+                this.drawParameterPoints(p);
+            }
+
+            /**
+             * 绘制参数点
+             * @param {p5} p - p5.js实例
+             */
+            drawParameterPoints(p) {
+                const vertices = this.system.surface;
+                const uSteps = vertices.length;
+                const vSteps = vertices[0].length;
+                
+                p.stroke(255, 0, 0);
+                p.strokeWeight(4);
+                
+                // 在参数平面上绘制采样点
+                for (let i = 0; i < uSteps; i += 2) {
+                    for (let j = 0; j < vSteps; j += 2) {
+                        const u = (i / uSteps) * 2 * Math.PI;
+                        const v = (j / vSteps);
+                        
+                        // 根据对象类型调整v的范围
+                        let paramX, paramY;
+                        switch (this.system.generator.currentObject) {
+                            case TopologyObject.MOBIUS:
+                                paramX = (u / (2 * Math.PI)) * 300 - 150;
+                                paramY = (v * 2 - 1) * 150;
+                                break;
+                            case TopologyObject.KLEIN:
+                            case TopologyObject.TORUS:
+                                paramX = (u / (2 * Math.PI)) * 300 - 150;
+                                paramY = (v) * 300 - 150;
+                                break;
+                            case TopologyObject.SPHERE:
+                                paramX = (u / (2 * Math.PI)) * 300 - 150;
+                                paramY = (v) * 150 - 75;
+                                break;
+                        }
+                        
+                        p.point(paramX, paramY);
+                    }
+                }
+            }
+
+            /**
+             * 绘制映射关系
+             * @param {p5} p - p5.js实例
+             */
+            drawMapping(p) {
+                // 这里可以添加从参数空间到3D空间的映射可视化
+                // 简化实现：暂时留空
+            }
+
+            /**
+             * 更新对象信息显示
+             */
+            updateObjectInfo() {
+                const infoElement = document.getElementById('object-info');
+                if (infoElement) {
+                    infoElement.textContent = this.system.getObjectDescription();
+                }
+            }
+
+            /**
+             * 处理鼠标拖动
+             * @param {number} deltaX - x方向变化
+             * @param {number} deltaY - y方向变化
+             */
+            handleDrag(deltaX, deltaY) {
+                this.system.dragRotationY += deltaX * 0.01;
+                this.system.dragRotationX += deltaY * 0.01;
+            }
+
+            /**
+             * 重置拖动旋转
+             */
+            resetDrag() {
+                this.system.dragRotationX = 0;
+                this.system.dragRotationY = 0;
+            }
+        }
+
+        // =============================================
+        // 模块五: 全局实例与初始化
+        // =============================================
+
+        /** 全局可视化渲染器实例 */
+        let topologyVisualizer;
+
+        // =============================================
+        // 模块六: p5.js 画布管理
+        // =============================================
+
+        /**
+         * 3D拓扑结构画布的p5.js实例
+         */
+        let topologySketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(400, 400, p.WEBGL);
+                canvas.parent('topology-canvas');
+            };
+
+            p.draw = function() {
+                if (topologyVisualizer) {
+                    topologyVisualizer.drawTopology(p);
+                }
+            };
+
+            p.mousePressed = function() {
+                if (topologyVisualizer) {
+                    topologyVisualizer.system.isDragging = true;
+                    topologyVisualizer.system.lastMouseX = p.mouseX;
+                    topologyVisualizer.system.lastMouseY = p.mouseY;
+                }
+            };
+
+            p.mouseDragged = function() {
+                if (topologyVisualizer && topologyVisualizer.system.isDragging) {
+                    const deltaX = p.mouseX - topologyVisualizer.system.lastMouseX;
+                    const deltaY = p.mouseY - topologyVisualizer.system.lastMouseY;
+                    topologyVisualizer.handleDrag(deltaX, deltaY);
+                    topologyVisualizer.system.lastMouseX = p.mouseX;
+                    topologyVisualizer.system.lastMouseY = p.mouseY;
+                }
+            };
+
+            p.mouseReleased = function() {
+                if (topologyVisualizer) {
+                    topologyVisualizer.system.isDragging = false;
+                }
+            };
+        };
+
+        /**
+         * 参数空间画布的p5.js实例
+         */
+        let parameterSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(400, 400);
+                canvas.parent('parameter-canvas');
+            };
+
+            p.draw = function() {
+                if (topologyVisualizer) {
+                    topologyVisualizer.drawParameterSpace(p);
+                }
+            };
+        };
+
+        // =============================================
+        // 模块七: 初始化函数
+        // =============================================
+
+        /**
+         * 页面加载初始化
+         */
+        function initializePage() {
+            topologyVisualizer = new TopologyRenderer();
+            
+            // 创建p5.js实例
+            new p5(topologySketch);
+            new p5(parameterSketch);
+            
+            // 初始化显示
+            topologyVisualizer.updateObjectInfo();
+            
+            // 绑定事件监听器
+            bindEventListeners();
+        }
+
+        // =============================================
+        // 模块八: 用户界面控制函数
+        // =============================================
+
+        /**
+         * 绑定所有事件监听器
+         */
+        function bindEventListeners() {
+            // 拓扑对象选择
+            document.getElementById('topology-object').addEventListener('change', updateTopologyObject);
+            
+            // 滑块控制
+            document.getElementById('rotation-speed').addEventListener('input', updateRotationSpeed);
+            document.getElementById('twist').addEventListener('input', updateTwist);
+            document.getElementById('scale').addEventListener('input', updateScale);
+            document.getElementById('resolution').addEventListener('input', updateResolution);
+            document.getElementById('display-mode').addEventListener('change', updateDisplayMode);
+            
+            // 按钮控制
+            document.getElementById('animateButton').addEventListener('click', toggleAnimation);
+            document.getElementById('resetButton').addEventListener('click', resetView);
+            document.getElementById('colorButton').addEventListener('click', cycleColor);
+            
+            // 标签页切换
+            document.getElementById('mobiusTab').addEventListener('click', () => switchTab('mobius'));
+            document.getElementById('kleinTab').addEventListener('click', () => switchTab('klein'));
+            document.getElementById('topologyTab').addEventListener('click', () => switchTab('topology'));
+            document.getElementById('theoryTab').addEventListener('click', () => switchTab('theory'));
+        }
+
+        /**
+         * 切换标签页
+         * @param {string} tabName - 标签页名称
+         */
+        function switchTab(tabName) {
+            // 更新标签激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 激活当前标签
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // 更新可视化标签页
+            if (topologyVisualizer) {
+                topologyVisualizer.system.currentTab = tabName;
+            }
+            
+            // 更新说明显示
+            document.querySelectorAll('.explanation > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.getElementById(tabName + 'Explanation').style.display = 'block';
+            
+            // 根据标签页设置拓扑对象
+            let topologyObject;
+            switch(tabName) {
+                case 'mobius':
+                    topologyObject = TopologyObject.MOBIUS;
+                    break;
+                case 'klein':
+                    topologyObject = TopologyObject.KLEIN;
+                    break;
+                case 'topology':
+                case 'theory':
+                default:
+                    topologyObject = TopologyObject.MOBIUS;
+            }
+            
+            document.getElementById('topology-object').value = topologyObject;
+            updateTopologyObject();
+        }
+
+        /**
+         * 更新拓扑对象
+         */
+        function updateTopologyObject() {
+            if (!topologyVisualizer) return;
+            
+            const objectType = document.getElementById('topology-object').value;
+            topologyVisualizer.system.updateObject(objectType);
+            topologyVisualizer.updateObjectInfo();
+        }
+
+        /**
+         * 更新旋转速度
+         */
+        function updateRotationSpeed() {
+            const speed = parseFloat(document.getElementById('rotation-speed').value);
+            document.getElementById('rotationSpeedValue').textContent = speed.toFixed(1);
+            
+            if (topologyVisualizer) {
+                topologyVisualizer.system.generator.rotationSpeed = speed;
+            }
+        }
+
+        /**
+         * 更新扭曲参数
+         */
+        function updateTwist() {
+            const twist = parseFloat(document.getElementById('twist').value);
+            document.getElementById('twistValue').textContent = twist.toFixed(2);
+            
+            if (topologyVisualizer) {
+                topologyVisualizer.system.updateTwist(twist);
+            }
+        }
+
+        /**
+         * 更新缩放
+         */
+        function updateScale() {
+            const scale = parseFloat(document.getElementById('scale').value);
+            document.getElementById('scaleValue').textContent = scale.toFixed(1);
+            
+            if (topologyVisualizer) {
+                topologyVisualizer.system.updateScale(scale);
+            }
+        }
+
+        /**
+         * 更新分辨率
+         */
+        function updateResolution() {
+            const resolution = parseInt(document.getElementById('resolution').value);
+            document.getElementById('resolutionValue').textContent = resolution;
+            
+            if (topologyVisualizer) {
+                topologyVisualizer.system.updateResolution(resolution);
+            }
+        }
+
+        /**
+         * 更新显示模式
+         */
+        function updateDisplayMode() {
+            const mode = document.getElementById('display-mode').value;
+            
+            if (topologyVisualizer) {
+                topologyVisualizer.system.updateDisplayMode(mode);
+            }
+        }
+
+        /**
+         * 切换动画状态
+         */
+        function toggleAnimation() {
+            // 动画已经在draw循环中持续运行
+            // 这里可以添加额外的动画效果
+            if (topologyVisualizer) {
+                // 可以在这里添加特殊动画效果
+            }
+        }
+
+        /**
+         * 重置视图
+         */
+        function resetView() {
+            if (topologyVisualizer) {
+                // 重置到初始状态
+                document.getElementById('topology-object').value = 'mobius';
+                document.getElementById('rotation-speed').value = 1.0;
+                document.getElementById('twist').value = 0.5;
+                document.getElementById('scale').value = 1.0;
+                document.getElementById('resolution').value = 50;
+                document.getElementById('display-mode').value = 'wireframe';
+                
+                // 更新显示值
+                document.getElementById('rotationSpeedValue').textContent = '1.0';
+                document.getElementById('twistValue').textContent = '0.50';
+                document.getElementById('scaleValue').textContent = '1.0';
+                document.getElementById('resolutionValue').textContent = '50';
+                
+                // 应用重置
+                updateTopologyObject();
+                updateRotationSpeed();
+                updateTwist();
+                updateScale();
+                updateResolution();
+                updateDisplayMode();
+                
+                // 重置旋转
+                topologyVisualizer.system.generator.rotationX = -0.5;
+                topologyVisualizer.system.generator.rotationY = 0.5;
+                topologyVisualizer.resetDrag();
+                
+                // 切换到莫比乌斯带标签
+                switchTab('mobius');
+            }
+        }
+
+        /**
+         * 切换颜色
+         */
+        function cycleColor() {
+            if (topologyVisualizer) {
+                topologyVisualizer.system.cycleColor();
+            }
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>
