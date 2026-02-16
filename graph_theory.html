@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图论可视化 - 数学可视化项目</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <style>
+        :root {
+            --primary-color: #4caf50;
+            --primary-dark: #388e3c;
+            --secondary-color: #e8f5e9;
+            --text-color: #2c3e50;
+            --background-color: #f9f9f9;
+            --control-bg: #e8f5e9;
+            --header-gradient: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        nav {
+            background: #2c3e50;
+            padding: 15px 0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-button {
+            background: transparent;
+            color: white;
+            border: 2px solid #3498db;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .nav-button:hover {
+            background: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .nav-button.active {
+            background: #3498db;
+            box-shadow: 0 2px 4px rgba(52, 152, 219, 0.3);
+        }
+
+        header {
+            text-align: center;
+            background: var(--header-gradient);
+            color: white;
+            padding: 40px 30px;
+            border-radius: 12px;
+            margin-bottom: 35px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            font-size: 2.8em;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .visualization-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin: 25px 0;
+        }
+
+        @media (max-width: 968px) {
+            .visualization-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sketch-panel {
+            border: 2px solid var(--primary-color);
+            border-radius: 12px;
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sketch-panel h3 {
+            text-align: center;
+            padding: 15px;
+            background: var(--primary-color);
+            color: white;
+            margin: 0;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .controls {
+            background: var(--control-bg);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 25px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        .controls h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            font-size: 1.5em;
+        }
+
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .control-group h4 {
+            margin-bottom: 15px;
+            color: var(--primary-dark);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 5px;
+        }
+
+        .slider-container {
+            margin: 15px 0;
+        }
+
+        .slider-container label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .slider-value {
+            display: inline-block;
+            min-width: 60px;
+            text-align: right;
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 8px 0;
+            -webkit-appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: var(--primary-dark);
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: white;
+            font-size: 16px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 140px;
+        }
+
+        button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.secondary {
+            background: #95a5a6;
+        }
+
+        button.secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .explanation {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin: 25px 0;
+        }
+
+        .explanation h3 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+
+        .explanation p {
+            margin-bottom: 15px;
+        }
+
+        .explanation ul, .explanation ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .explanation li {
+            margin-bottom: 8px;
+        }
+
+        .math-equation {
+            font-family: 'Times New Roman', serif;
+            font-style: italic;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--primary-color);
+            margin: 15px 0;
+            text-align: center;
+            font-size: 1.2em;
+        }
+
+        .info-panel {
+            background: #e8f5e9;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: #bdc3c7;
+            border: none;
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: var(--text-color);
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #95a5a6;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .control-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-button {
+                width: 90%;
+                text-align: center;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+        }
+
+        /* 图论特定样式 */
+        .algorithm-steps {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .step-item {
+            padding: 8px;
+            margin: 5px 0;
+            border-left: 3px solid var(--primary-color);
+            background: white;
+        }
+
+        .step-item.current {
+            background: var(--secondary-color);
+            font-weight: bold;
+        }
+
+        .node-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .node-color {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航菜单 -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="nav-button">特征值与特征向量</a>
+            <a href="determinants.html" class="nav-button">行列式几何</a>
+            <a href="svd.html" class="nav-button">奇异值分解</a>
+            <a href="linear_transformations.html" class="nav-button">线性变换</a>
+            <a href="qr.html" class="nav-button">QR分解</a>
+            <a href="lu.html" class="nav-button">LU分解</a>
+            <a href="fourier.html" class="nav-button">傅里叶变换</a>
+            <a href="gradient_descent.html" class="nav-button">梯度下降</a>
+            <a href="probability.html" class="nav-button">概率分布</a>
+            <a href="differential_equations.html" class="nav-button">微分方程</a>
+            <a href="complex_analysis.html" class="nav-button">复分析可视化</a>
+            <a href="topology.html" class="nav-button">拓扑学可视化</a>
+            <a href="graph_theory.html" class="nav-button active">图论可视化</a>
+        </div>
+    </nav>
+
+    <header>
+        <h1>图论可视化</h1>
+        <p class="subtitle">探索离散结构与算法之美</p>
+    </header>
+    
+    <main>
+        <div class="tab-container">
+            <button class="tab active" id="graphBasicsTab">图论基础</button>
+            <button class="tab" id="traversalTab">图遍历算法</button>
+            <button class="tab" id="shortestPathTab">最短路径</button>
+            <button class="tab" id="mstTab">最小生成树</button>
+            <button class="tab" id="applicationsTab">图论应用</button>
+        </div>
+        
+        <div class="visualization-container">
+            <div class="sketch-panel">
+                <h3>交互式图编辑器</h3>
+                <div id="graph-canvas"></div>
+            </div>
+            <div class="sketch-panel">
+                <h3>算法可视化</h3>
+                <div id="algorithm-canvas"></div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>图论算法控制</h3>
+            
+            <div class="control-grid">
+                <div class="control-group">
+                    <h4>图结构与算法</h4>
+                    
+                    <div class="slider-container">
+                        <label>图类型: 
+                            <select id="graph-type">
+                                <option value="undirected">无向图</option>
+                                <option value="directed">有向图</option>
+                                <option value="weighted">加权图</option>
+                            </select>
+                        </label>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>算法选择: 
+                            <select id="algorithm-select">
+                                <option value="dfs">深度优先搜索(DFS)</option>
+                                <option value="bfs">广度优先搜索(BFS)</option>
+                                <option value="dijkstra">Dijkstra最短路径</option>
+                                <option value="prim">Prim最小生成树</option>
+                                <option value="kruskal">Kruskal最小生成树</option>
+                            </select>
+                        </label>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>动画速度: 
+                            <span class="slider-value" id="animationSpeedValue">1.0</span>
+                        </label>
+                        <input type="range" id="animation-speed" min="0.1" max="3" step="0.1" value="1.0">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>图参数控制</h4>
+                    
+                    <div class="slider-container">
+                        <label>节点数量: 
+                            <span class="slider-value" id="nodeCountValue">8</span>
+                        </label>
+                        <input type="range" id="node-count" min="3" max="20" step="1" value="8">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>边密度: 
+                            <span class="slider-value" id="edgeDensityValue">0.5</span>
+                        </label>
+                        <input type="range" id="edge-density" min="0.1" max="1" step="0.1" value="0.5">
+                    </div>
+                    
+                    <div class="slider-container">
+                        <label>随机种子: 
+                            <span class="slider-value" id="randomSeedValue">1</span>
+                        </label>
+                        <input type="range" id="random-seed" min="1" max="10" step="1" value="1">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <strong>当前算法信息:</strong>
+                <span id="algorithm-info">深度优先搜索(DFS) - 使用栈数据结构，优先深入探索路径</span>
+                <div class="node-info">
+                    <div><span class="node-color" style="background-color: #4caf50;"></span> 未访问节点</div>
+                    <div><span class="node-color" style="background-color: #ff9800;"></span> 已发现节点</div>
+                    <div><span class="node-color" style="background-color: #f44336;"></span> 当前处理节点</div>
+                    <div><span class="node-color" style="background-color: #2196f3;"></span> 已访问节点</div>
+                </div>
+            </div>
+            
+            <div class="algorithm-steps" id="algorithm-steps">
+                <div class="step-item">算法步骤将在此显示...</div>
+            </div>
+            
+            <div class="button-group">
+                <button id="startButton">开始算法</button>
+                <button id="stepButton" class="secondary">单步执行</button>
+                <button id="resetButton" class="secondary">重置图</button>
+                <button id="generateButton" class="secondary">生成随机图</button>
+            </div>
+        </div>
+        
+        <div class="explanation">
+            <div id="graphBasicsExplanation">
+                <h3>图论基础</h3>
+                <p>图论是研究图（Graph）的数学理论，图是由顶点（Vertex）和边（Edge）组成的离散结构。图论在计算机科学、网络分析、社交网络等领域有广泛应用。</p>
+                
+                <div class="math-equation">
+                    G = (V, E)<br>
+                    V: 顶点集合, E: 边集合
+                </div>
+                
+                <p><strong>基本概念：</strong></p>
+                <ul>
+                    <li><strong>顶点/节点</strong>：图的基本元素，表示实体</li>
+                    <li><strong>边</strong>：连接两个顶点的关系，可以有权重和方向</li>
+                    <li><strong>度</strong>：与顶点相连的边的数量</li>
+                    <li><strong>路径</strong>：顶点序列，其中相邻顶点有边连接</li>
+                    <li><strong>连通性</strong>：图中任意两个顶点间是否存在路径</li>
+                </ul>
+                
+                <p><strong>图分类：</strong></p>
+                <ol>
+                    <li><strong>无向图</strong>：边没有方向，表示双向关系</li>
+                    <li><strong>有向图</strong>：边有方向，表示单向关系</li>
+                    <li><strong>加权图</strong>：边有权重，表示关系强度或距离</li>
+                    <li><strong>无权图</strong>：所有边权重相等</li>
+                </ol>
+                
+                <p><strong>应用领域：</strong></p>
+                <p>图论在社交网络分析、路由算法、数据挖掘、生物信息学等领域有重要应用。</p>
+                
+                <div class="info-panel">
+                    <strong>交互操作：</strong> 在左侧画布中，你可以点击空白处添加节点，点击并拖动节点创建边，右键点击节点删除它。
+                </div>
+            </div>
+            
+            <div id="traversalExplanation" style="display:none">
+                <h3>图遍历算法</h3>
+                <p>图遍历算法用于系统地访问图中的所有节点，主要有深度优先搜索(DFS)和广度优先搜索(BFS)两种基本策略。</p>
+                
+                <div class="math-equation">
+                    DFS: 使用栈(Stack)数据结构，时间复杂度 O(V+E)<br>
+                    BFS: 使用队列(Queue)数据结构，时间复杂度 O(V+E)
+                </div>
+                
+                <p><strong>深度优先搜索(DFS)：</strong></p>
+                <ul>
+                    <li><strong>策略</strong>：尽可能深地探索图的分支，直到无法继续，然后回溯</li>
+                    <li><strong>数据结构</strong>：使用栈（递归或显式栈）</li>
+                    <li><strong>应用</strong>：拓扑排序、连通分量检测、路径查找</li>
+                </ul>
+                
+                <p><strong>广度优先搜索(BFS)：</strong></p>
+                <ul>
+                    <li><strong>策略</strong>：逐层探索，先访问所有相邻节点，再访问下一层</li>
+                    <li><strong>数据结构</strong>：使用队列</li>
+                    <li><strong>应用</strong>：最短路径（无权图）、网络广播、社交网络距离</li>
+                </ul>
+                
+                <p><strong>算法比较：</strong></p>
+                <table style="width:100%; border-collapse: collapse; margin: 15px 0;">
+                    <tr>
+                        <th style="border:1px solid #ddd; padding:8px;">特性</th>
+                        <th style="border:1px solid #ddd; padding:8px;">DFS</th>
+                        <th style="border:1px solid #ddd; padding:8px;">BFS</th>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px;">数据结构</td>
+                        <td style="border:1px solid #ddd; padding:8px;">栈</td>
+                        <td style="border:1px solid #ddd; padding:8px;">队列</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px;">空间复杂度</td>
+                        <td style="border:1px solid #ddd; padding:8px;">O(h)</td>
+                        <td style="border:1px solid #ddd; padding:8px;">O(w)</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px;">最短路径</td>
+                        <td style="border:1px solid #ddd; padding:8px;">不保证</td>
+                        <td style="border:1px solid #ddd; padding:8px;">保证（无权图）</td>
+                    </tr>
+                </table>
+                
+                <div class="info-panel">
+                    <strong>观察技巧：</strong> 注意DFS如何深入探索一条路径直到尽头，然后回溯；而BFS如何逐层扩展，先访问所有距离为1的节点，然后是距离为2的节点，依此类推。
+                </div>
+            </div>
+            
+            <div id="shortestPathExplanation" style="display:none">
+                <h3>最短路径算法</h3>
+                <p>最短路径算法用于在加权图中找到两个节点之间的最短路径，其中最著名的是Dijkstra算法。</p>
+                
+                <div class="math-equation">
+                    Dijkstra算法: 贪心策略，时间复杂度 O((V+E) log V)<br>
+                    使用优先队列，适用于非负权图
+                </div>
+                
+                <p><strong>Dijkstra算法步骤：</strong></p>
+                <ol>
+                    <li>初始化所有节点的距离为无穷大，起点距离为0</li>
+                    <li>将所有节点加入优先队列</li>
+                    <li>当队列非空时，取出距离最小的节点u</li>
+                    <li>对u的每个邻居v，计算通过u到v的距离</li>
+                    <li>如果新距离更小，更新v的距离和前驱节点</li>
+                    <li>重复直到找到目标节点或队列为空</li>
+                </ol>
+                
+                <p><strong>算法特性：</strong></p>
+                <ul>
+                    <li><strong>贪心策略</strong>：每次选择当前距离最小的节点</li>
+                    <li><strong>最优子结构</strong>：最短路径的子路径也是最短路径</li>
+                    <li><strong>非负权要求</strong>：不能处理负权边</li>
+                    <li><strong>完备性</strong>：能够找到所有可达节点的最短路径</li>
+                </ul>
+                
+                <p><strong>应用场景：</strong></p>
+                <ul>
+                    <li><strong>路由算法</strong>：网络数据包转发</li>
+                    <li><strong>地图导航</strong>：寻找两点间最短行驶路径</li>
+                    <li><strong>社交网络</strong>：计算用户间的最短关系路径</li>
+                    <li><strong>物流规划</strong>：优化货物运输路径</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>观察技巧：</strong> 注意Dijkstra算法如何逐步扩展"已知最短路径"的集合，每次选择距离起点最近的未处理节点，并更新其邻居的距离。
+                </div>
+            </div>
+            
+            <div id="mstExplanation" style="display:none">
+                <h3>最小生成树</h3>
+                <p>最小生成树(MST)是连接图中所有顶点的边权值和最小的树结构，主要有Prim和Kruskal两种算法。</p>
+                
+                <div class="math-equation">
+                    Prim算法: 贪心策略，从单个顶点逐步扩展<br>
+                    Kruskal算法: 按边权排序，避免环的形成
+                </div>
+                
+                <p><strong>Prim算法：</strong></p>
+                <ul>
+                    <li><strong>策略</strong>：从单个顶点开始，逐步添加最小权边连接已选和未选顶点</li>
+                    <li><strong>数据结构</strong>：优先队列存储连接已选和未选顶点的边</li>
+                    <li><strong>时间复杂度</strong>：O(E log V)</li>
+                </ul>
+                
+                <p><strong>Kruskal算法：</strong></p>
+                <ul>
+                    <li><strong>策略</strong>：按边权从小到大排序，依次添加不形成环的边</li>
+                    <li><strong>数据结构</strong>：并查集检测环</li>
+                    <li><strong>时间复杂度</strong>：O(E log E)</li>
+                </ul>
+                
+                <p><strong>应用场景：</strong></p>
+                <ol>
+                    <li><strong>网络设计</strong>：最小成本连接所有节点（如电信网络）</li>
+                    <li><strong>聚类分析</strong>：基于最小生成树进行数据聚类</li>
+                    <li><strong>图像分割</strong>：在计算机视觉中用于区域划分</li>
+                    <li><strong>电路设计</strong>：最小化连接元件的线路成本</li>
+                </ol>
+                
+                <p><strong>算法比较：</strong></p>
+                <table style="width:100%; border-collapse: collapse; margin: 15px 0;">
+                    <tr>
+                        <th style="border:1px solid #ddd; padding:8px;">特性</th>
+                        <th style="border:1px solid #ddd; padding:8px;">Prim算法</th>
+                        <th style="border:1px solid #ddd; padding:8px;">Kruskal算法</th>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px;">适用图类型</td>
+                        <td style="border:1px solid #ddd; padding:8px;">稠密图</td>
+                        <td style="border:1px solid #ddd; padding:8px;">稀疏图</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px;">数据结构</td>
+                        <td style="border:1px solid #ddd; padding:8px;">优先队列</td>
+                        <td style="border:1px solid #ddd; padding:8px;">并查集</td>
+                    </tr>
+                    <tr>
+                        <td style="border:1px solid #ddd; padding:8px;">实现复杂度</td>
+                        <td style="border:1px solid #ddd; padding:8px;">较简单</td>
+                        <td style="border:1px solid #ddd; padding:8px;">需实现并查集</td>
+                    </tr>
+                </table>
+                
+                <div class="info-panel">
+                    <strong>观察技巧：</strong> 注意Prim算法如何从一个顶点开始逐步"生长"出最小生成树，而Kruskal算法如何按边权排序并避免环的形成。
+                </div>
+            </div>
+            
+            <div id="applicationsExplanation" style="display:none">
+                <h3>图论应用</h3>
+                <p>图论在现代计算机科学和现实生活中有着广泛的应用，从社交网络分析到路由算法，无处不在。</p>
+                
+                <p><strong>主要应用领域：</strong></p>
+                <ul>
+                    <li><strong>社交网络分析</strong>：Facebook好友关系、Twitter关注网络</li>
+                    <li><strong>网络路由</strong>：互联网数据包转发、OSPF和BGP协议</li>
+                    <li><strong>推荐系统</strong>：基于图的协同过滤（如Amazon、Netflix）</li>
+                    <li><strong>生物信息学</strong>：蛋白质相互作用网络、基因调控网络</li>
+                    <li><strong>知识图谱</strong>：Google知识图谱、语义网</li>
+                </ul>
+                
+                <p><strong>实际案例：</strong></p>
+                <ol>
+                    <li><strong>PageRank算法</strong>：Google搜索引擎的核心算法，将网页视为图中的节点，链接视为边</li>
+                    <li><strong>六度分隔理论</strong>：通过社交网络验证任意两人之间平均通过6个中间人即可建立联系</li>
+                    <li><strong>交通网络优化</strong>：使用最短路径算法优化物流和运输路线</li>
+                    <li><strong>电路板设计</strong>：使用最小生成树优化电路连接</li>
+                </ol>
+                
+                <p><strong>前沿研究方向：</strong></p>
+                <ul>
+                    <li><strong>图神经网络</strong>：将深度学习应用于图结构数据</li>
+                    <li><strong>动态图分析</strong>：研究随时间变化的图结构</li>
+                    <li><strong>大规模图处理</strong>：使用分布式系统处理数十亿节点的图</li>
+                    <li><strong>图数据库</strong>：专门为图数据设计的数据库系统（如Neo4j）</li>
+                </ul>
+                
+                <div class="info-panel">
+                    <strong>教育价值：</strong> 图论提供了理解和建模复杂系统的强大工具，通过学习图论，你可以掌握分析网络结构、优化路径和发现隐藏模式的能力。
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 引入p5.js库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    
+    <!-- 图论可视化代码 -->
+    <script>
+        // =============================================================================
+        // 图论可视化模块
+        // 作者: Zhi An
+        // 描述: 图结构与算法可视化
+        // =============================================================================
+
+        // =============================================
+        // 模块一: 全局常量与变量定义
+        // =============================================
+
+        /** 可视化状态枚举 */
+        const VisualizationState = {
+            IDLE: 'idle',
+            RUNNING: 'running',
+            PAUSED: 'paused',
+            COMPLETED: 'completed'
+        };
+
+        /** 标签页类型枚举 */
+        const TabType = {
+            GRAPH_BASICS: 'graphBasics',
+            TRAVERSAL: 'traversal',
+            SHORTEST_PATH: 'shortestPath',
+            MST: 'mst',
+            APPLICATIONS: 'applications'
+        };
+
+        /** 图类型枚举 */
+        const GraphType = {
+            UNDIRECTED: 'undirected',
+            DIRECTED: 'directed',
+            WEIGHTED: 'weighted'
+        };
+
+        /** 算法类型枚举 */
+        const AlgorithmType = {
+            DFS: 'dfs',
+            BFS: 'bfs',
+            DIJKSTRA: 'dijkstra',
+            PRIM: 'prim',
+            KRUSKAL: 'kruskal'
+        };
+
+        /** 节点状态枚举 */
+        const NodeState = {
+            UNVISITED: 'unvisited',
+            DISCOVERED: 'discovered',
+            VISITED: 'visited',
+            CURRENT: 'current'
+        };
+
+        /** 可视化配置常量 */
+        const VISUAL_CONFIG = {
+            CANVAS_WIDTH: 400,
+            CANVAS_HEIGHT: 400,
+            NODE_RADIUS: 20,
+            NODE_COLORS: {
+                [NodeState.UNVISITED]: [76, 175, 80],    // 绿色
+                [NodeState.DISCOVERED]: [255, 152, 0],   // 橙色
+                [NodeState.VISITED]: [33, 150, 243],     // 蓝色
+                [NodeState.CURRENT]: [244, 67, 54]       // 红色
+            },
+            EDGE_COLOR: [100, 100, 100],
+            HIGHLIGHT_EDGE_COLOR: [244, 67, 54],
+            BACKGROUND_COLOR: [250, 250, 250],
+            TEXT_COLOR: [0, 0, 0],
+            ANIMATION_SPEED: 1.0
+        };
+
+        // =============================================
+        // 模块二: 数学核心类 - 图数据结构
+        // =============================================
+
+        /** 图节点类 */
+        class GraphNode {
+            constructor(id, x, y) {
+                this.id = id;
+                this.x = x;
+                this.y = y;
+                this.state = NodeState.UNVISITED;
+                this.distance = Infinity;
+                this.predecessor = null;
+                this.visited = false;
+                this.discoveryTime = 0;
+                this.finishTime = 0;
+            }
+
+            /**
+             * 重置节点状态
+             */
+            reset() {
+                this.state = NodeState.UNVISITED;
+                this.distance = Infinity;
+                this.predecessor = null;
+                this.visited = false;
+                this.discoveryTime = 0;
+                this.finishTime = 0;
+            }
+
+            /**
+             * 检查点是否在给定坐标范围内
+             * @param {number} targetX - 目标X坐标
+             * @param {number} targetY - 目标Y坐标
+             * @returns {boolean} 是否在范围内
+             */
+            containsPoint(targetX, targetY) {
+                const dx = this.x - targetX;
+                const dy = this.y - targetY;
+                return Math.sqrt(dx * dx + dy * dy) <= VISUAL_CONFIG.NODE_RADIUS;
+            }
+        }
+
+        /** 图边类 */
+        class GraphEdge {
+            constructor(from, to, weight = 1, directed = false) {
+                this.from = from;
+                this.to = to;
+                this.weight = weight;
+                this.directed = directed;
+                this.highlighted = false;
+            }
+
+            /**
+             * 重置边状态
+             */
+            reset() {
+                this.highlighted = false;
+            }
+        }
+
+        /** 图数据结构类 */
+        class Graph {
+            constructor() {
+                this.nodes = [];
+                this.edges = [];
+                this.nextNodeId = 0;
+                this.type = GraphType.UNDIRECTED;
+            }
+
+            /**
+             * 添加节点
+             * @param {number} x - X坐标
+             * @param {number} y - Y坐标
+             * @returns {GraphNode} 新创建的节点
+             */
+            addNode(x, y) {
+                const node = new GraphNode(this.nextNodeId++, x, y);
+                this.nodes.push(node);
+                return node;
+            }
+
+            /**
+             * 添加边
+             * @param {GraphNode} from - 起始节点
+             * @param {GraphNode} to - 目标节点
+             * @param {number} weight - 边权重
+             * @returns {GraphEdge} 新创建的边
+             */
+            addEdge(from, to, weight = 1) {
+                const edge = new GraphEdge(from, to, weight, this.type === GraphType.DIRECTED);
+                this.edges.push(edge);
+                
+                // 如果是无向图，添加反向边
+                if (this.type === GraphType.UNDIRECTED) {
+                    const reverseEdge = new GraphEdge(to, from, weight, false);
+                    this.edges.push(reverseEdge);
+                }
+                
+                return edge;
+            }
+
+            /**
+             * 获取节点的邻居
+             * @param {GraphNode} node - 目标节点
+             * @returns {Array} 邻居节点列表
+             */
+            getNeighbors(node) {
+                const neighbors = [];
+                for (const edge of this.edges) {
+                    if (edge.from === node) {
+                        neighbors.push({
+                            node: edge.to,
+                            edge: edge
+                        });
+                    }
+                }
+                return neighbors;
+            }
+
+            /**
+             * 获取所有边（无向图去重）
+             * @returns {Array} 边列表
+             */
+            getUniqueEdges() {
+                if (this.type === GraphType.DIRECTED) {
+                    return this.edges;
+                }
+                
+                // 对于无向图，去除重复边
+                const uniqueEdges = [];
+                const edgeSet = new Set();
+                
+                for (const edge of this.edges) {
+                    const key = `${Math.min(edge.from.id, edge.to.id)}-${Math.max(edge.from.id, edge.to.id)}`;
+                    if (!edgeSet.has(key)) {
+                        uniqueEdges.push(edge);
+                        edgeSet.add(key);
+                    }
+                }
+                
+                return uniqueEdges;
+            }
+
+            /**
+             * 重置所有节点和边的状态
+             */
+            reset() {
+                for (const node of this.nodes) {
+                    node.reset();
+                }
+                for (const edge of this.edges) {
+                    edge.reset();
+                }
+            }
+
+            /**
+             * 生成随机图
+             * @param {number} nodeCount - 节点数量
+             * @param {number} edgeDensity - 边密度 (0-1)
+             */
+            generateRandom(nodeCount, edgeDensity) {
+                this.nodes = [];
+                this.edges = [];
+                this.nextNodeId = 0;
+                
+                // 在画布上均匀分布节点
+                const centerX = VISUAL_CONFIG.CANVAS_WIDTH / 2;
+                const centerY = VISUAL_CONFIG.CANVAS_HEIGHT / 2;
+                const radius = Math.min(centerX, centerY) * 0.8;
+                
+                for (let i = 0; i < nodeCount; i++) {
+                    const angle = (i / nodeCount) * 2 * Math.PI;
+                    const x = centerX + radius * Math.cos(angle);
+                    const y = centerY + radius * Math.sin(angle);
+                    this.addNode(x, y);
+                }
+                
+                // 添加边
+                const maxEdges = nodeCount * (nodeCount - 1) / 2;
+                const targetEdges = Math.floor(maxEdges * edgeDensity);
+                
+                for (let i = 0; i < targetEdges; i++) {
+                    let from, to;
+                    do {
+                        from = this.nodes[Math.floor(Math.random() * this.nodes.length)];
+                        to = this.nodes[Math.floor(Math.random() * this.nodes.length)];
+                    } while (from === to || this.hasEdge(from, to));
+                    
+                    const weight = Math.floor(Math.random() * 10) + 1;
+                    this.addEdge(from, to, weight);
+                }
+            }
+
+            /**
+             * 检查两个节点之间是否有边
+             * @param {GraphNode} from - 起始节点
+             * @param {GraphNode} to - 目标节点
+             * @returns {boolean} 是否有边
+             */
+            hasEdge(from, to) {
+                for (const edge of this.edges) {
+                    if (edge.from === from && edge.to === to) {
+                        return true;
+                    }
+                    if (this.type === GraphType.UNDIRECTED && edge.from === to && edge.to === from) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            /**
+             * 查找节点 by ID
+             * @param {number} id - 节点ID
+             * @returns {GraphNode} 节点对象
+             */
+            getNodeById(id) {
+                return this.nodes.find(node => node.id === id);
+            }
+
+            /**
+             * 删除节点及其相关边
+             * @param {GraphNode} node - 要删除的节点
+             */
+            removeNode(node) {
+                // 删除与节点相关的边
+                this.edges = this.edges.filter(edge => 
+                    edge.from !== node && edge.to !== node
+                );
+                
+                // 删除节点
+                this.nodes = this.nodes.filter(n => n !== node);
+            }
+        }
+
+        // =============================================
+        // 模块三: 算法实现类
+        // =============================================
+
+        /** 深度优先搜索算法 */
+        class DFSAlgorithm {
+            constructor(graph) {
+                this.graph = graph;
+                this.stack = [];
+                this.visited = new Set();
+                this.steps = [];
+                this.currentStep = 0;
+                this.time = 0;
+            }
+
+            /**
+             * 初始化算法
+             * @param {GraphNode} startNode - 起始节点
+             */
+            initialize(startNode) {
+                this.stack = [startNode];
+                this.visited = new Set();
+                this.steps = [];
+                this.currentStep = 0;
+                this.time = 0;
+                
+                // 重置所有节点状态
+                for (const node of this.graph.nodes) {
+                    node.reset();
+                }
+                
+                startNode.state = NodeState.CURRENT;
+                this.addStep(`开始DFS，从节点 ${startNode.id} 开始`);
+            }
+
+            /**
+             * 执行一步算法
+             * @returns {boolean} 是否还有更多步骤
+             */
+            step() {
+                if (this.stack.length === 0) {
+                    this.addStep("DFS完成，所有节点已访问");
+                    return false;
+                }
+                
+                const currentNode = this.stack.pop();
+                
+                if (this.visited.has(currentNode)) {
+                    return true;
+                }
+                
+                // 标记当前节点为已访问
+                this.visited.add(currentNode);
+                currentNode.state = NodeState.VISITED;
+                currentNode.discoveryTime = ++this.time;
+                
+                this.addStep(`访问节点 ${currentNode.id}，发现时间: ${currentNode.discoveryTime}`);
+                
+                // 获取邻居节点
+                const neighbors = this.graph.getNeighbors(currentNode);
+                
+                // 按特定顺序将未访问的邻居加入栈
+                for (const neighbor of neighbors.reverse()) {
+                    if (!this.visited.has(neighbor.node)) {
+                        this.stack.push(neighbor.node);
+                        neighbor.node.state = NodeState.DISCOVERED;
+                        neighbor.node.predecessor = currentNode;
+                        neighbor.edge.highlighted = true;
+                        
+                        this.addStep(`发现节点 ${neighbor.node.id}，通过边 (${currentNode.id}-${neighbor.node.id})`);
+                    }
+                }
+                
+                currentNode.finishTime = ++this.time;
+                this.addStep(`完成节点 ${currentNode.id}，完成时间: ${currentNode.finishTime}`);
+                
+                return true;
+            }
+
+            /**
+             * 添加算法步骤
+             * @param {string} description - 步骤描述
+             */
+            addStep(description) {
+                this.steps.push(description);
+            }
+
+            /**
+             * 获取当前步骤
+             * @returns {string} 当前步骤描述
+             */
+            getCurrentStep() {
+                return this.steps[this.currentStep] || "算法已完成";
+            }
+
+            /**
+             * 前进到下一步
+             */
+            nextStep() {
+                if (this.currentStep < this.steps.length - 1) {
+                    this.currentStep++;
+                }
+            }
+        }
+
+        /** 广度优先搜索算法 */
+        class BFSAlgorithm {
+            constructor(graph) {
+                this.graph = graph;
+                this.queue = [];
+                this.visited = new Set();
+                this.steps = [];
+                this.currentStep = 0;
+            }
+
+            /**
+             * 初始化算法
+             * @param {GraphNode} startNode - 起始节点
+             */
+            initialize(startNode) {
+                this.queue = [startNode];
+                this.visited = new Set([startNode]);
+                this.steps = [];
+                this.currentStep = 0;
+                
+                // 重置所有节点状态
+                for (const node of this.graph.nodes) {
+                    node.reset();
+                }
+                
+                startNode.state = NodeState.CURRENT;
+                startNode.distance = 0;
+                this.addStep(`开始BFS，从节点 ${startNode.id} 开始，距离: 0`);
+            }
+
+            /**
+             * 执行一步算法
+             * @returns {boolean} 是否还有更多步骤
+             */
+            step() {
+                if (this.queue.length === 0) {
+                    this.addStep("BFS完成，所有节点已访问");
+                    return false;
+                }
+                
+                const currentNode = this.queue.shift();
+                currentNode.state = NodeState.VISITED;
+                
+                this.addStep(`处理节点 ${currentNode.id}，距离: ${currentNode.distance}`);
+                
+                // 获取邻居节点
+                const neighbors = this.graph.getNeighbors(currentNode);
+                
+                for (const neighbor of neighbors) {
+                    if (!this.visited.has(neighbor.node)) {
+                        this.visited.add(neighbor.node);
+                        this.queue.push(neighbor.node);
+                        neighbor.node.state = NodeState.DISCOVERED;
+                        neighbor.node.distance = currentNode.distance + 1;
+                        neighbor.node.predecessor = currentNode;
+                        neighbor.edge.highlighted = true;
+                        
+                        this.addStep(`发现节点 ${neighbor.node.id}，距离: ${neighbor.node.distance}`);
+                    }
+                }
+                
+                return true;
+            }
+
+            /**
+             * 添加算法步骤
+             * @param {string} description - 步骤描述
+             */
+            addStep(description) {
+                this.steps.push(description);
+            }
+
+            /**
+             * 获取当前步骤
+             * @returns {string} 当前步骤描述
+             */
+            getCurrentStep() {
+                return this.steps[this.currentStep] || "算法已完成";
+            }
+
+            /**
+             * 前进到下一步
+             */
+            nextStep() {
+                if (this.currentStep < this.steps.length - 1) {
+                    this.currentStep++;
+                }
+            }
+        }
+
+        /** Dijkstra最短路径算法 */
+        class DijkstraAlgorithm {
+            constructor(graph) {
+                this.graph = graph;
+                this.priorityQueue = [];
+                this.visited = new Set();
+                this.steps = [];
+                this.currentStep = 0;
+            }
+
+            /**
+             * 初始化算法
+             * @param {GraphNode} startNode - 起始节点
+             */
+            initialize(startNode) {
+                // 重置所有节点状态
+                for (const node of this.graph.nodes) {
+                    node.reset();
+                }
+                
+                startNode.distance = 0;
+                this.priorityQueue = [...this.graph.nodes];
+                this.visited = new Set();
+                this.steps = [];
+                this.currentStep = 0;
+                
+                this.addStep(`开始Dijkstra算法，从节点 ${startNode.id} 开始`);
+                this.addStep(`初始化所有节点距离为无穷大，起点距离为0`);
+            }
+
+            /**
+             * 执行一步算法
+             * @returns {boolean} 是否还有更多步骤
+             */
+            step() {
+                if (this.priorityQueue.length === 0) {
+                    this.addStep("Dijkstra算法完成，所有最短路径已计算");
+                    return false;
+                }
+                
+                // 找到距离最小的节点
+                let minIndex = 0;
+                for (let i = 1; i < this.priorityQueue.length; i++) {
+                    if (this.priorityQueue[i].distance < this.priorityQueue[minIndex].distance) {
+                        minIndex = i;
+                    }
+                }
+                
+                const currentNode = this.priorityQueue[minIndex];
+                this.priorityQueue.splice(minIndex, 1);
+                this.visited.add(currentNode);
+                currentNode.state = NodeState.VISITED;
+                
+                this.addStep(`选择节点 ${currentNode.id}，当前距离: ${currentNode.distance}`);
+                
+                // 更新邻居节点的距离
+                const neighbors = this.graph.getNeighbors(currentNode);
+                for (const neighbor of neighbors) {
+                    if (!this.visited.has(neighbor.node)) {
+                        const newDistance = currentNode.distance + neighbor.edge.weight;
+                        if (newDistance < neighbor.node.distance) {
+                            neighbor.node.distance = newDistance;
+                            neighbor.node.predecessor = currentNode;
+                            neighbor.edge.highlighted = true;
+                            this.addStep(`更新节点 ${neighbor.node.id} 的距离为 ${newDistance}`);
+                        }
+                    }
+                }
+                
+                return true;
+            }
+
+            /**
+             * 添加算法步骤
+             * @param {string} description - 步骤描述
+             */
+            addStep(description) {
+                this.steps.push(description);
+            }
+
+            /**
+             * 获取当前步骤
+             * @returns {string} 当前步骤描述
+             */
+            getCurrentStep() {
+                return this.steps[this.currentStep] || "算法已完成";
+            }
+
+            /**
+             * 前进到下一步
+             */
+            nextStep() {
+                if (this.currentStep < this.steps.length - 1) {
+                    this.currentStep++;
+                }
+            }
+        }
+
+        // =============================================
+        // 模块四: 可视化系统类
+        // =============================================
+
+        /** 图论可视化系统 */
+        class GraphVisualization {
+            constructor() {
+                this.graph = new Graph();
+                this.currentAlgorithm = null;
+                this.visualizationState = VisualizationState.IDLE;
+                this.animationSpeed = VISUAL_CONFIG.ANIMATION_SPEED;
+                this.selectedNode = null;
+                this.draggingNode = null;
+                this.creatingEdge = null;
+                
+                // 生成初始图
+                this.graph.generateRandom(8, 0.5);
+            }
+
+            /**
+             * 设置当前算法
+             * @param {string} algorithmType - 算法类型
+             */
+            setAlgorithm(algorithmType) {
+                this.stopAlgorithm();
+                
+                switch (algorithmType) {
+                    case AlgorithmType.DFS:
+                        this.currentAlgorithm = new DFSAlgorithm(this.graph);
+                        break;
+                    case AlgorithmType.BFS:
+                        this.currentAlgorithm = new BFSAlgorithm(this.graph);
+                        break;
+                    case AlgorithmType.DIJKSTRA:
+                        this.currentAlgorithm = new DijkstraAlgorithm(this.graph);
+                        break;
+                    // Prim和Kruskal算法实现留作扩展
+                    default:
+                        this.currentAlgorithm = new DFSAlgorithm(this.graph);
+                }
+            }
+
+            /**
+             * 开始算法可视化
+             */
+            startAlgorithm() {
+                if (!this.currentAlgorithm || this.graph.nodes.length === 0) return;
+                
+                const startNode = this.graph.nodes[0];
+                this.currentAlgorithm.initialize(startNode);
+                this.visualizationState = VisualizationState.RUNNING;
+            }
+
+            /**
+             * 执行算法步骤
+             */
+            stepAlgorithm() {
+                if (!this.currentAlgorithm || this.visualizationState !== VisualizationState.RUNNING) return;
+                
+                const hasMoreSteps = this.currentAlgorithm.step();
+                if (!hasMoreSteps) {
+                    this.visualizationState = VisualizationState.COMPLETED;
+                }
+            }
+
+            /**
+             * 停止算法
+             */
+            stopAlgorithm() {
+                this.visualizationState = VisualizationState.IDLE;
+                this.graph.reset();
+            }
+
+            /**
+             * 重置图
+             */
+            resetGraph() {
+                this.stopAlgorithm();
+                this.graph.reset();
+            }
+
+            /**
+             * 生成新的随机图
+             * @param {number} nodeCount - 节点数量
+             * @param {number} edgeDensity - 边密度
+             */
+            generateRandomGraph(nodeCount, edgeDensity) {
+                this.stopAlgorithm();
+                this.graph.generateRandom(nodeCount, edgeDensity);
+            }
+
+            /**
+             * 处理鼠标点击
+             * @param {number} x - X坐标
+             * @param {number} y - Y坐标
+             * @param {boolean} isRightClick - 是否是右键点击
+             */
+            handleClick(x, y, isRightClick = false) {
+                if (this.visualizationState !== VisualizationState.IDLE) return;
+                
+                // 检查是否点击了现有节点
+                for (const node of this.graph.nodes) {
+                    if (node.containsPoint(x, y)) {
+                        if (isRightClick) {
+                            // 右键点击删除节点
+                            this.graph.removeNode(node);
+                            return;
+                        } else if (this.creatingEdge) {
+                            // 正在创建边
+                            if (this.creatingEdge !== node) {
+                                this.graph.addEdge(this.creatingEdge, node);
+                            }
+                            this.creatingEdge = null;
+                            return;
+                        } else {
+                            // 开始拖动或创建边
+                            this.draggingNode = node;
+                            this.selectedNode = node;
+                            return;
+                        }
+                    }
+                }
+                
+                // 如果没有点击节点且不是右键，创建新节点
+                if (!isRightClick && !this.creatingEdge) {
+                    this.graph.addNode(x, y);
+                }
+            }
+
+            /**
+             * 处理鼠标拖动
+             * @param {number} x - X坐标
+             * @param {number} y - Y坐标
+             */
+            handleDrag(x, y) {
+                if (this.draggingNode) {
+                    this.draggingNode.x = x;
+                    this.draggingNode.y = y;
+                }
+            }
+
+            /**
+             * 处理鼠标释放
+             */
+            handleRelease() {
+                this.draggingNode = null;
+            }
+
+            /**
+             * 开始创建边
+             */
+            startCreatingEdge() {
+                if (this.selectedNode) {
+                    this.creatingEdge = this.selectedNode;
+                }
+            }
+
+            /**
+             * 获取算法信息
+             * @returns {string} 算法描述
+             */
+            getAlgorithmInfo() {
+                if (!this.currentAlgorithm) {
+                    return "深度优先搜索(DFS) - 使用栈数据结构，优先深入探索路径";
+                }
+                
+                if (this.currentAlgorithm instanceof DFSAlgorithm) {
+                    return "深度优先搜索(DFS) - 使用栈数据结构，优先深入探索路径";
+                } else if (this.currentAlgorithm instanceof BFSAlgorithm) {
+                    return "广度优先搜索(BFS) - 使用队列数据结构，逐层探索节点";
+                } else if (this.currentAlgorithm instanceof DijkstraAlgorithm) {
+                    return "Dijkstra算法 - 贪心策略求解单源最短路径问题";
+                }
+                
+                return "未知算法";
+            }
+
+            /**
+             * 获取当前算法步骤
+             * @returns {Array} 算法步骤数组
+             */
+            getAlgorithmSteps() {
+                if (!this.currentAlgorithm) {
+                    return ["请选择算法并开始执行"];
+                }
+                return this.currentAlgorithm.steps;
+            }
+
+            /**
+             * 获取当前步骤索引
+             * @returns {number} 当前步骤索引
+             */
+            getCurrentStepIndex() {
+                if (!this.currentAlgorithm) return 0;
+                return this.currentAlgorithm.currentStep;
+            }
+        }
+
+        // =============================================
+        // 模块五: 全局实例与初始化
+        // =============================================
+
+        /** 全局可视化系统实例 */
+        let graphVisualizer;
+
+        // =============================================
+        // 模块六: p5.js 画布管理
+        // =============================================
+
+        /**
+         * 交互式图编辑画布的p5.js实例
+         */
+        let graphSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(400, 400);
+                canvas.parent('graph-canvas');
+                p.background(VISUAL_CONFIG.BACKGROUND_COLOR);
+            };
+
+            p.draw = function() {
+                p.background(VISUAL_CONFIG.BACKGROUND_COLOR);
+                
+                if (graphVisualizer) {
+                    drawGraph(p, graphVisualizer.graph);
+                }
+            };
+
+            p.mousePressed = function() {
+                if (graphVisualizer) {
+                    const isRightClick = p.mouseButton === p.RIGHT;
+                    graphVisualizer.handleClick(p.mouseX, p.mouseY, isRightClick);
+                }
+            };
+
+            p.mouseDragged = function() {
+                if (graphVisualizer) {
+                    graphVisualizer.handleDrag(p.mouseX, p.mouseY);
+                }
+            };
+
+            p.mouseReleased = function() {
+                if (graphVisualizer) {
+                    graphVisualizer.handleRelease();
+                }
+            };
+
+            p.doubleClicked = function() {
+                if (graphVisualizer) {
+                    graphVisualizer.startCreatingEdge();
+                }
+            };
+
+            /**
+             * 绘制图
+             * @param {p5} p - p5.js实例
+             * @param {Graph} graph - 图对象
+             */
+            function drawGraph(p, graph) {
+                // 绘制边
+                for (const edge of graph.edges) {
+                    drawEdge(p, edge);
+                }
+                
+                // 绘制节点
+                for (const node of graph.nodes) {
+                    drawNode(p, node);
+                }
+                
+                // 绘制正在创建的边
+                if (graphVisualizer.creatingEdge) {
+                    p.stroke(255, 0, 0);
+                    p.strokeWeight(2);
+                    p.line(
+                        graphVisualizer.creatingEdge.x, 
+                        graphVisualizer.creatingEdge.y, 
+                        p.mouseX, 
+                        p.mouseY
+                    );
+                }
+            }
+
+            /**
+             * 绘制边
+             * @param {p5} p - p5.js实例
+             * @param {GraphEdge} edge - 边对象
+             */
+            function drawEdge(p, edge) {
+                if (edge.highlighted) {
+                    p.stroke(VISUAL_CONFIG.HIGHLIGHT_EDGE_COLOR);
+                    p.strokeWeight(3);
+                } else {
+                    p.stroke(VISUAL_CONFIG.EDGE_COLOR);
+                    p.strokeWeight(1);
+                }
+                
+                p.line(edge.from.x, edge.from.y, edge.to.x, edge.to.y);
+                
+                // 绘制边的权重（如果是加权图）
+                if (graphVisualizer.graph.type === GraphType.WEIGHTED) {
+                    const midX = (edge.from.x + edge.to.x) / 2;
+                    const midY = (edge.from.y + edge.to.y) / 2;
+                    
+                    p.fill(255);
+                    p.stroke(0);
+                    p.strokeWeight(1);
+                    p.ellipse(midX, midY, 20, 20);
+                    
+                    p.fill(0);
+                    p.noStroke();
+                    p.textAlign(p.CENTER, p.CENTER);
+                    p.textSize(10);
+                    p.text(edge.weight, midX, midY);
+                }
+                
+                // 绘制箭头（如果是有向图）
+                if (edge.directed) {
+                    drawArrow(p, edge.from.x, edge.from.y, edge.to.x, edge.to.y);
+                }
+            }
+
+            /**
+             * 绘制节点
+             * @param {p5} p - p5.js实例
+             * @param {GraphNode} node - 节点对象
+             */
+            function drawNode(p, node) {
+                const color = VISUAL_CONFIG.NODE_COLORS[node.state];
+                p.fill(color);
+                p.stroke(0);
+                p.strokeWeight(1);
+                p.ellipse(node.x, node.y, VISUAL_CONFIG.NODE_RADIUS * 2);
+                
+                // 绘制节点ID
+                p.fill(VISUAL_CONFIG.TEXT_COLOR);
+                p.noStroke();
+                p.textAlign(p.CENTER, p.CENTER);
+                p.textSize(12);
+                p.text(node.id, node.x, node.y);
+                
+                // 绘制距离（如果已设置）
+                if (node.distance < Infinity) {
+                    p.textSize(10);
+                    p.text(`d=${node.distance}`, node.x, node.y + 15);
+                }
+            }
+
+            /**
+             * 绘制箭头
+             * @param {p5} p - p5.js实例
+             * @param {number} fromX - 起始X坐标
+             * @param {number} fromY - 起始Y坐标
+             * @param {number} toX - 目标X坐标
+             * @param {number} toY - 目标Y坐标
+             */
+            function drawArrow(p, fromX, fromY, toX, toY) {
+                const angle = p.atan2(toY - fromY, toX - fromX);
+                const headSize = 10;
+                const offset = VISUAL_CONFIG.NODE_RADIUS;
+                
+                // 调整端点位置，避免箭头与节点重叠
+                const adjustedToX = toX - offset * Math.cos(angle);
+                const adjustedToY = toY - offset * Math.sin(angle);
+                const adjustedFromX = fromX + offset * Math.cos(angle);
+                const adjustedFromY = fromY + offset * Math.sin(angle);
+                
+                // 绘制箭头线
+                p.line(adjustedFromX, adjustedFromY, adjustedToX, adjustedToY);
+                
+                // 绘制箭头头部
+                p.push();
+                p.translate(adjustedToX, adjustedToY);
+                p.rotate(angle);
+                p.line(0, 0, -headSize, -headSize/2);
+                p.line(0, 0, -headSize, headSize/2);
+                p.pop();
+            }
+        };
+
+        /**
+         * 算法可视化画布的p5.js实例
+         */
+        let algorithmSketch = function(p) {
+            p.setup = function() {
+                let canvas = p.createCanvas(400, 400);
+                canvas.parent('algorithm-canvas');
+                p.background(VISUAL_CONFIG.BACKGROUND_COLOR);
+            };
+
+            p.draw = function() {
+                p.background(VISUAL_CONFIG.BACKGROUND_COLOR);
+                
+                if (graphVisualizer && graphVisualizer.visualizationState === VisualizationState.RUNNING) {
+                    // 执行算法步骤
+                    setTimeout(() => {
+                        graphVisualizer.stepAlgorithm();
+                        updateAlgorithmSteps();
+                    }, 1000 / graphVisualizer.animationSpeed);
+                }
+                
+                // 绘制算法状态信息
+                drawAlgorithmInfo(p);
+            };
+
+            /**
+             * 绘制算法状态信息
+             * @param {p5} p - p5.js实例
+             */
+            function drawAlgorithmInfo(p) {
+                p.fill(0);
+                p.noStroke();
+                p.textAlign(p.LEFT, p.TOP);
+                p.textSize(14);
+                
+                let y = 20;
+                p.text("算法状态:", 20, y);
+                y += 25;
+                
+                if (graphVisualizer) {
+                    const state = graphVisualizer.visualizationState;
+                    let stateText = "";
+                    switch(state) {
+                        case VisualizationState.IDLE:
+                            stateText = "就绪";
+                            break;
+                        case VisualizationState.RUNNING:
+                            stateText = "运行中";
+                            break;
+                        case VisualizationState.PAUSED:
+                            stateText = "已暂停";
+                            break;
+                        case VisualizationState.COMPLETED:
+                            stateText = "已完成";
+                            break;
+                    }
+                    p.text(`状态: ${stateText}`, 40, y);
+                    y += 25;
+                    
+                    if (graphVisualizer.currentAlgorithm) {
+                        p.text(`当前步骤: ${graphVisualizer.getCurrentStepIndex() + 1}/${graphVisualizer.getAlgorithmSteps().length}`, 40, y);
+                    }
+                } else {
+                    p.text("状态: 未初始化", 40, y);
+                }
+            }
+        };
+
+        // =============================================
+        // 模块七: 初始化函数
+        // =============================================
+
+        /**
+         * 页面加载初始化
+         */
+        function initializePage() {
+            graphVisualizer = new GraphVisualization();
+            
+            // 创建p5.js实例
+            new p5(graphSketch);
+            new p5(algorithmSketch);
+            
+            // 绑定事件监听器
+            bindEventListeners();
+            
+            // 初始化显示
+            updateAlgorithmInfo();
+        }
+
+        // =============================================
+        // 模块八: 用户界面控制函数
+        // =============================================
+
+        /**
+         * 绑定所有事件监听器
+         */
+        function bindEventListeners() {
+            // 图类型选择
+            document.getElementById('graph-type').addEventListener('change', updateGraphType);
+            
+            // 算法选择
+            document.getElementById('algorithm-select').addEventListener('change', updateAlgorithm);
+            
+            // 滑块控制
+            document.getElementById('animation-speed').addEventListener('input', updateAnimationSpeed);
+            document.getElementById('node-count').addEventListener('input', updateNodeCount);
+            document.getElementById('edge-density').addEventListener('input', updateEdgeDensity);
+            document.getElementById('random-seed').addEventListener('input', updateRandomSeed);
+            
+            // 按钮控制
+            document.getElementById('startButton').addEventListener('click', startAlgorithm);
+            document.getElementById('stepButton').addEventListener('click', stepAlgorithm);
+            document.getElementById('resetButton').addEventListener('click', resetGraph);
+            document.getElementById('generateButton').addEventListener('click', generateRandomGraph);
+            
+            // 标签页切换
+            document.getElementById('graphBasicsTab').addEventListener('click', () => switchTab('graphBasics'));
+            document.getElementById('traversalTab').addEventListener('click', () => switchTab('traversal'));
+            document.getElementById('shortestPathTab').addEventListener('click', () => switchTab('shortestPath'));
+            document.getElementById('mstTab').addEventListener('click', () => switchTab('mst'));
+            document.getElementById('applicationsTab').addEventListener('click', () => switchTab('applications'));
+        }
+
+        /**
+         * 切换标签页
+         * @param {string} tabName - 标签页名称
+         */
+        function switchTab(tabName) {
+            // 更新标签激活状态
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 激活当前标签
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            
+            // 更新说明显示
+            document.querySelectorAll('.explanation > div').forEach(div => {
+                div.style.display = 'none';
+            });
+            document.getElementById(tabName + 'Explanation').style.display = 'block';
+            
+            // 根据标签页设置算法
+            let algorithmType;
+            switch(tabName) {
+                case 'traversal':
+                    algorithmType = AlgorithmType.DFS;
+                    break;
+                case 'shortestPath':
+                    algorithmType = AlgorithmType.DIJKSTRA;
+                    break;
+                case 'mst':
+                    algorithmType = AlgorithmType.PRIM;
+                    break;
+                case 'applications':
+                case 'graphBasics':
+                default:
+                    algorithmType = AlgorithmType.DFS;
+            }
+            
+            document.getElementById('algorithm-select').value = algorithmType;
+            updateAlgorithm();
+        }
+
+        /**
+         * 更新图类型
+         */
+        function updateGraphType() {
+            if (!graphVisualizer) return;
+            
+            const graphType = document.getElementById('graph-type').value;
+            graphVisualizer.graph.type = graphType;
+            graphVisualizer.resetGraph();
+        }
+
+        /**
+         * 更新算法
+         */
+        function updateAlgorithm() {
+            if (!graphVisualizer) return;
+            
+            const algorithmType = document.getElementById('algorithm-select').value;
+            graphVisualizer.setAlgorithm(algorithmType);
+            updateAlgorithmInfo();
+        }
+
+        /**
+         * 更新动画速度
+         */
+        function updateAnimationSpeed() {
+            const speed = parseFloat(document.getElementById('animation-speed').value);
+            document.getElementById('animationSpeedValue').textContent = speed.toFixed(1);
+            
+            if (graphVisualizer) {
+                graphVisualizer.animationSpeed = speed;
+            }
+        }
+
+        /**
+         * 更新节点数量
+         */
+        function updateNodeCount() {
+            const count = parseInt(document.getElementById('node-count').value);
+            document.getElementById('nodeCountValue').textContent = count;
+        }
+
+        /**
+         * 更新边密度
+         */
+        function updateEdgeDensity() {
+            const density = parseFloat(document.getElementById('edge-density').value);
+            document.getElementById('edgeDensityValue').textContent = density.toFixed(1);
+        }
+
+        /**
+         * 更新随机种子
+         */
+        function updateRandomSeed() {
+            const seed = parseInt(document.getElementById('random-seed').value);
+            document.getElementById('randomSeedValue').textContent = seed;
+        }
+
+        /**
+         * 开始算法
+         */
+        function startAlgorithm() {
+            if (graphVisualizer) {
+                graphVisualizer.startAlgorithm();
+                updateAlgorithmSteps();
+            }
+        }
+
+        /**
+         * 单步执行算法
+         */
+        function stepAlgorithm() {
+            if (graphVisualizer) {
+                graphVisualizer.visualizationState = VisualizationState.RUNNING;
+                graphVisualizer.stepAlgorithm();
+                updateAlgorithmSteps();
+                graphVisualizer.visualizationState = VisualizationState.PAUSED;
+            }
+        }
+
+        /**
+         * 重置图
+         */
+        function resetGraph() {
+            if (graphVisualizer) {
+                graphVisualizer.resetGraph();
+                updateAlgorithmSteps();
+            }
+        }
+
+        /**
+         * 生成随机图
+         */
+        function generateRandomGraph() {
+            if (graphVisualizer) {
+                const nodeCount = parseInt(document.getElementById('node-count').value);
+                const edgeDensity = parseFloat(document.getElementById('edge-density').value);
+                graphVisualizer.generateRandomGraph(nodeCount, edgeDensity);
+            }
+        }
+
+        /**
+         * 更新算法信息显示
+         */
+        function updateAlgorithmInfo() {
+            const infoElement = document.getElementById('algorithm-info');
+            if (infoElement && graphVisualizer) {
+                infoElement.textContent = graphVisualizer.getAlgorithmInfo();
+            }
+        }
+
+        /**
+         * 更新算法步骤显示
+         */
+        function updateAlgorithmSteps() {
+            const stepsElement = document.getElementById('algorithm-steps');
+            if (!stepsElement || !graphVisualizer) return;
+            
+            const steps = graphVisualizer.getAlgorithmSteps();
+            const currentStepIndex = graphVisualizer.getCurrentStepIndex();
+            
+            stepsElement.innerHTML = '';
+            
+            steps.forEach((step, index) => {
+                const stepElement = document.createElement('div');
+                stepElement.className = 'step-item';
+                if (index === currentStepIndex) {
+                    stepElement.classList.add('current');
+                }
+                stepElement.textContent = `${index + 1}. ${step}`;
+                stepsElement.appendChild(stepElement);
+            });
+            
+            // 滚动到当前步骤
+            const currentStepElement = stepsElement.querySelector('.current');
+            if (currentStepElement) {
+                currentStepElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>
